@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>فۆڕم</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="app-header form-header">
+      <button id="backBtn" class="back-btn">&rarr; گەڕانەوە</button>
+      <h1 id="formTitle">فۆڕم</h1>
+    </header>
+
+    <main class="form-body">
+      <form id="blankForm" class="blank-form">
+        <div class="form-field">
+          <label for="field1">خانەی یەکەم</label>
+          <input type="text" id="field1" name="field1">
+        </div>
+        <div class="form-field">
+          <label for="field2">خانەی دووەم</label>
+          <input type="text" id="field2" name="field2">
+        </div>
+        <div class="form-field">
+          <label for="field3">خانەی سێیەم</label>
+          <input type="text" id="field3" name="field3">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">پاشەکەوت</button>
+          <button type="reset" class="btn-secondary">سڕینەوە</button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script src="sync.js"></script>
+</body>
+</html>
