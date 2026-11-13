@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>گۆڕینی پاسۆرد</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="app-header form-header">
+      <button id="backBtn" class="back-btn">&rarr; گەڕانەوە</button>
+      <h1>گۆڕینی پاسۆرد</h1>
+    </header>
+
+    <main class="form-body">
+      <section class="records-section">
+        <h2>هەژماری کرێکارەکان (ئایدی و پاسۆرد)</h2>
+        <form id="accountForm" class="blank-form account-form">
+          <div class="form-field">
+            <label for="accId">ئایدی</label>
+            <input type="text" id="accId" name="accId" required>
+          </div>
+          <div class="form-field">
+            <label for="accPass">پاسۆرد</label>
+            <input type="text" id="accPass" name="accPass" required>
+          </div>
+          <div class="form-field">
+            <label for="accName">ناوی کرێکار</label>
+            <input type="text" id="accName" name="accName" required>
+          </div>
+          <div class="form-field">
+            <label for="accMobile">ژمارە موبایل</label>
+            <input type="tel" id="accMobile" name="accMobile" inputmode="tel" required>
+          </div>
+          <div class="form-field">
+            <label for="accRole">پێدانی دەسەڵات</label>
+            <select id="accRole" name="accRole" required>
+              <option value="">-- هەڵبژێرە --</option>
+              <option value="وەستا">وەستا</option>
+              <option value="کرێکار">کرێکار</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">دروستکردنی ئایدی و پاسۆرد</button>
+          </div>
+        </form>
+        <ul id="accountsList" class="records-list"></ul>
+      </section>
+
+      <section class="records-section">
+        <h2>تۆمارەکان</h2>
+        <ul id="recordsList" class="records-list"></ul>
+        <p id="emptyMsg" class="empty-msg">هێشتا هیچ تۆمارێک نییە</p>
+      </section>
+
+      <button type="button" id="allSummaryBtn" class="btn-summary">لیستی زانیاری کرێکاران</button>
+    </main>
+  </div>
+
+  <div id="allSummaryModal" class="modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>لیستی زانیاری کرێکاران</h2>
+        <button id="allSummaryClose" class="back-btn">داخستن</button>
+      </div>
+      <div class="filter-row">
+        <select id="filterWorker">
+          <option value="">-- هەموو کرێکاران --</option>
+        </select>
+        <select id="filterOwner">
+          <option value="">-- هەموو خاوەن ماڵەکان --</option>
+        </select>
+      </div>
+      <div id="allSummaryBody"></div>
+      <div class="info-row total-row"><span>کۆی گشتی پارەی هەموو کرێکارەکان</span><span id="allGrandTotal"></span></div>
+    </div>
+  </div>
+
+  <script src="workers.js"></script>
+  <script src="sync.js"></script>
+</body>
+</html>
