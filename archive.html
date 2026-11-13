@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ئەرشیف</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="app-header form-header">
+      <button id="backBtn" class="back-btn">&rarr; گەڕانەوە</button>
+      <h1>ئەرشیف</h1>
+    </header>
+
+    <main class="form-body">
+      <div class="pay-btns">
+        <button type="button" class="pay-btn pay-cash" data-pay="نەقد">نەقد</button>
+        <button type="button" class="pay-btn pay-debt" data-pay="قەرز">قەرز</button>
+        <button type="button" class="pay-btn pay-install" data-pay="قیست">قیست</button>
+      </div>
+
+      <section class="records-section">
+        <h2 id="listTitle">هەموو تۆمارەکان</h2>
+        <ul id="recordsList" class="records-list"></ul>
+        <p id="emptyMsg" class="empty-msg">هیچ تۆمارێک نییە</p>
+      </section>
+    </main>
+  </div>
+
+  <div id="infoModal" class="modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>زانیاری خاوەن ماڵ</h2>
+        <button id="infoClose" class="back-btn">داخستن</button>
+      </div>
+      <div id="infoBody"></div>
+    </div>
+  </div>
+
+  <script src="archive.js"></script>
+  <script src="sync.js"></script>
+</body>
+</html>
