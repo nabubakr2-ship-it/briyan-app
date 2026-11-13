@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تەماشاکردنەکان</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="app-header form-header">
+      <button id="backBtn" class="back-btn">&rarr; گەڕانەوە</button>
+      <h1>تەماشاکردنەکان</h1>
+    </header>
+
+    <main class="form-body">
+      <form id="viewingForm" class="blank-form">
+        <div class="form-field">
+          <label for="ownerName">ناوی خاوەن ماڵ</label>
+          <input type="text" id="ownerName" name="ownerName" required>
+        </div>
+        <div class="form-field">
+          <label for="mobile">ژمارە موبایل</label>
+          <input type="tel" id="mobile" name="mobile" inputmode="tel" required>
+        </div>
+        <div class="form-field">
+          <label for="jobType">جۆری ئیش</label>
+          <select id="jobType" name="jobType" required>
+            <option value="">-- هەڵبژێرە --</option>
+            <option value="شکان">شکان</option>
+            <option value="محالەجە">محالەجە</option>
+          </select>
+        </div>
+        <div class="form-field" id="agreementField" hidden>
+          <label for="agreementType">جۆری ڕێک کەوتن</label>
+          <select id="agreementType" name="agreementType">
+            <option value="">-- هەڵبژێرە --</option>
+            <option value="مەتر تووڵ">مەتر تووڵ</option>
+            <option value="مەتر مرەبەح">مەتر مرەبەح</option>
+            <option value="مەتر تووڵ و مرەبەح">مەتر تووڵ و مرەبەح</option>
+            <option value="گۆترە">گۆترە</option>
+          </select>
+        </div>
+        <div class="form-field" id="shkanPriceField" hidden>
+          <label for="shkanPrice">بڕی پارە</label>
+          <input type="number" id="shkanPrice" name="shkanPrice" min="0" step="any">
+        </div>
+        <div class="form-field" id="priceSingleField" hidden>
+          <label for="price">نرخ</label>
+          <input type="number" id="price" name="price" min="0" step="any">
+        </div>
+        <div class="form-field" id="priceWoolField" hidden>
+          <label for="priceWool">نرخی تووڵ</label>
+          <input type="number" id="priceWool" name="priceWool" min="0" step="any">
+        </div>
+        <div class="form-field" id="priceMarbleField" hidden>
+          <label for="priceMarble">نرخی مرەبەح</label>
+          <input type="number" id="priceMarble" name="priceMarble" min="0" step="any">
+        </div>
+        <div class="form-field">
+          <label for="viewDate">بەرواری تەماشاکردنی ئیش</label>
+          <input type="date" id="viewDate" name="viewDate" required>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">پاشەکەوت</button>
+          <button type="reset" class="btn-secondary">سڕینەوە</button>
+        </div>
+      </form>
+
+      <section class="records-section">
+        <h2>تۆمارەکان</h2>
+        <ul id="recordsList" class="records-list"></ul>
+        <p id="emptyMsg" class="empty-msg">هێشتا هیچ تۆمارێک نییە</p>
+      </section>
+    </main>
+  </div>
+
+  <script src="viewings.js"></script>
+  <script src="sync.js"></script>
+</body>
+</html>
