@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تۆماری ڕۆژانە</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header class="app-header form-header">
+      <button id="logoutBtn" class="back-btn">دەرچوون</button>
+      <h1 id="workerTitle">تۆماری ڕۆژانە</h1>
+    </header>
+
+    <main class="form-body">
+      <form id="dayForm" class="blank-form">
+        <div class="form-field">
+          <label for="workerNameDisplay">ناوی کرێکار</label>
+          <input type="text" id="workerNameDisplay" readonly>
+        </div>
+        <div class="form-field">
+          <label for="ownerSelect">ناوی خاوەن ماڵ هەڵبژێرە</label>
+          <select id="ownerSelect" name="ownerSelect">
+            <option value="">-- هەڵبژێرە --</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="jobType">جۆری ئیش</label>
+          <select id="jobType" name="jobType" required>
+            <option value="">-- هەڵبژێرە --</option>
+            <option value="شکان">شکان</option>
+            <option value="محالەجە">محالەجە</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="dailyStatus">دۆخی ڕۆژانە</label>
+          <select id="dailyStatus" name="dailyStatus" required>
+            <option value="">-- هەڵبژێرە --</option>
+            <option value="ڕۆژی تەواو">ڕۆژی تەواو</option>
+            <option value="نیو ڕۆژ">نیو ڕۆژ</option>
+            <option value="دیاریکردنی دەست">دیاریکردنی دەست</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="dailyRate">بڕی ڕۆژانە</label>
+          <input type="number" id="dailyRate" name="dailyRate" min="0" step="any">
+        </div>
+        <div class="form-field">
+          <label for="entryDate">بەروار</label>
+          <input type="date" id="entryDate" name="entryDate" required>
+        </div>
+        <div class="form-field">
+          <label>بڕی مەسرەف</label>
+          <div class="items-table">
+            <div class="items-head">
+              <span>جۆری کاڵا</span>
+              <span>بڕی پارە</span>
+            </div>
+            <div id="itemsBody"></div>
+          </div>
+          <div class="total-expense">کۆی خەرجی: <strong id="totalAmount">0</strong></div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">پاشەکەوت</button>
+        </div>
+      </form>
+
+      <button type="button" id="summaryBtn" class="btn-summary">کۆی زانیاریەکان</button>
+
+      <section class="records-section">
+        <h2>تۆمارەکانم</h2>
+        <ul id="recordsList" class="records-list"></ul>
+        <p id="emptyMsg" class="empty-msg">هێشتا هیچ تۆمارێک نییە</p>
+      </section>
+    </main>
+  </div>
+
+  <div id="summaryModal" class="modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>کۆی زانیاریەکان</h2>
+        <button id="summaryClose" class="back-btn">داخستن</button>
+      </div>
+      <div id="dayTable"></div>
+      <div class="info-row"><span>کۆی بڕی ڕۆژانە</span><span id="sumRate"></span></div>
+      <div class="info-row"><span>کۆی بڕی مەسرەف</span><span id="sumExpense"></span></div>
+      <div class="info-row total-row"><span>کۆی گشتی پارە</span><span id="sumGrand"></span></div>
+    </div>
+  </div>
+
+  <script src="worker-day.js"></script>
+  <script src="sync.js"></script>
+</body>
+</html>
