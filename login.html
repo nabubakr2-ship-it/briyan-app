@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>چوونەژوورەوە</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header class="app-header">
+      <h1>گروپی برایان</h1>
+    </header>
+
+    <main class="form-body">
+      <form id="loginForm" class="blank-form">
+        <h2 id="loginTitle">چوونەژوورەوە</h2>
+        <div class="form-field">
+          <label for="loginId">ئایدی</label>
+          <input type="text" id="loginId" name="loginId" required autocomplete="username" dir="ltr" style="text-align:left">
+        </div>
+        <div class="form-field">
+          <label for="loginPass">پاسۆرد</label>
+          <input type="password" id="loginPass" name="loginPass" required autocomplete="current-password" dir="ltr" style="text-align:left">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" id="loginBtn">چوونەژوورەوە</button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <script src="login.js"></script>
+</body>
+</html>
