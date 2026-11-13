@@ -1,11 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
+  fetchRemoteAccounts();
   const form = document.getElementById("loginForm");
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    let accounts = [];
-    try {
-      accounts = JSON.parse(localStorage.getItem("workerAccounts")) || [];
-    } catch {}
+    const accounts = await fetchRemoteAccounts();
     const found = accounts.find(
       (a) =>
         a.id.toLowerCase() === form.loginId.value.trim().toLowerCase() &&
