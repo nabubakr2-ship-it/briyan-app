@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ژمێرکاری</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="app-header form-header">
+      <button id="backBtn" class="back-btn">&rarr; گەڕانەوە</button>
+      <h1>ژمێرکاری</h1>
+    </header>
+
+    <main class="form-body">
+      <div class="pay-btns">
+        <button type="button" class="pay-btn pay-cash" data-pay="نەقد">نەقد</button>
+        <button type="button" class="pay-btn pay-debt" data-pay="قەرز">قەرز</button>
+        <button type="button" class="pay-btn pay-install" data-pay="قیست">قیست</button>
+      </div>
+
+      <div class="calc-grid">
+        <div class="calc-card">
+          <span class="calc-label">کۆی پارەی خاوەن ماڵەکان</span>
+          <strong class="calc-value" id="ownersTotal">0</strong>
+          <span class="calc-sub">لە فۆڕمی ئیشی تەواو کراو</span>
+        </div>
+        <div class="calc-card">
+          <span class="calc-label">کۆی پارەی کرێکاران</span>
+          <strong class="calc-value" id="workersTotal">0</strong>
+          <span class="calc-sub">بڕی ڕۆژانە + خەرجی</span>
+        </div>
+        <div class="calc-card">
+          <span class="calc-label">کۆی خەرجیەکان</span>
+          <strong class="calc-value" id="expensesTotal">0</strong>
+          <span class="calc-sub">لە فۆڕمی خەرجی خۆم</span>
+        </div>
+        <div class="calc-card highlight">
+          <span class="calc-label">ماوە</span>
+          <strong class="calc-value" id="remaining">0</strong>
+          <span class="calc-sub">خاوەن ماڵ − کرێکار − خەرجی</span>
+        </div>
+      </div>
+
+      <button type="button" id="ownerInfoBtn" class="btn-summary">زانیاری خاوەن ماڵ</button>
+    </main>
+  </div>
+
+  <div id="payModal" class="modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="payModalTitle"></h2>
+        <button id="payModalClose" class="back-btn">داخستن</button>
+      </div>
+      <div class="filter-row">
+        <select id="payOwnerSelect">
+          <option value="">-- هەموو خاوەن ماڵەکان --</option>
+        </select>
+        <button type="button" id="payOwnerInfoBtn" class="btn-summary" style="margin-top:0">زانیاری خاوەن ماڵ</button>
+      </div>
+      <div id="payModalBody"></div>
+      <div class="info-row total-row"><span>کۆی پارە</span><span id="payTotal"></span></div>
+      <button type="button" id="sendArchiveBtn" class="btn-primary" style="margin-top:14px">ناردن بۆ ئەرشیف</button>
+    </div>
+  </div>
+
+  <div id="ownerModal" class="modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>زانیاری خاوەن ماڵ</h2>
+        <button id="ownerModalClose" class="back-btn">داخستن</button>
+      </div>
+      <div class="form-field">
+        <label for="ownerInfoSelect">ناوی خاوەن ماڵ هەڵبژێرە</label>
+        <select id="ownerInfoSelect">
+          <option value="">-- هەڵبژێرە --</option>
+        </select>
+      </div>
+      <div id="ownerInfoBody"></div>
+    </div>
+  </div>
+
+  <script src="calc.js"></script>
+  <script src="sync.js"></script>
+</body>
+</html>
