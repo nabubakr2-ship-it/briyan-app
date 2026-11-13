@@ -61,13 +61,17 @@ function ensureRemote() {
       resolve(false);
     };
     const load = (src, next) => {
+      if (src === "supabase.js" && window.SupabaseDB) return next();
+      if (src === "remote.js" && window.RemoteDB) return next();
       const s = document.createElement("script");
       s.src = src;
       s.onload = next;
       s.onerror = fail;
       document.head.appendChild(s);
     };
-    load("supabase.js", () => load("remote.js", () => resolve(!!window.RemoteDB)));
+    load("supabase-js.min.js", () =>
+      load("supabase.js", () => load("remote.js", () => resolve(!!window.RemoteDB)))
+    );
   });
   return ensureRemote.p;
 }
@@ -95,32 +99,36 @@ async function flushDirty() {
 }
 
 async function remoteTick() {
-  const ok = await ensureRemote();
-  if (!ok || !remoteReady()) return;
-  await flushDirty();
+  try {
+    const ok = await ensureRemote();
+    if (!ok || !remoteReady()) return;
+    await flushDirty();
 
-  let remote = await window.RemoteDB.supabaseGetAll();
-  if (!remote) return;
-
-  const localHasData = SYNC_KEYS.some((k) => readJSON(k, []).length);
-  if (Object.keys(remote).length === 0 && localHasData) {
-    await window.RemoteDB.supabasePutAll(collectData());
-    remote = await window.RemoteDB.supabaseGetAll();
+    let remote = await window.RemoteDB.supabaseGetAll();
     if (!remote) return;
-  }
 
-  let changed = false;
-  SYNC_KEYS.forEach((k) => {
-    if (Object.prototype.hasOwnProperty.call(remote, k)) {
-      const remoteVal = remote[k];
-      const localVal = readJSON(k, []);
-      if (stableStringify(localVal) !== stableStringify(remoteVal ?? [])) {
-        origSet.call(localStorage, k, JSON.stringify(remoteVal ?? []));
-        changed = true;
-      }
+    const localHasData = SYNC_KEYS.some((k) => readJSON(k, []).length);
+    if (Object.keys(remote).length === 0 && localHasData) {
+      await window.RemoteDB.supabasePutAll(collectData());
+      remote = await window.RemoteDB.supabaseGetAll();
+      if (!remote) return;
     }
-  });
-  if (changed) location.reload();
+
+    let changed = false;
+    SYNC_KEYS.forEach((k) => {
+      if (Object.prototype.hasOwnProperty.call(remote, k)) {
+        const remoteVal = remote[k];
+        const localVal = readJSON(k, []);
+        if (stableStringify(localVal) !== stableStringify(remoteVal ?? [])) {
+          origSet.call(localStorage, k, JSON.stringify(remoteVal ?? []));
+          changed = true;
+        }
+      }
+    });
+    if (changed) location.reload();
+  } catch (e) {
+    console.warn("supabase sync error", e);
+  }
 }
 
 let timer = null;
