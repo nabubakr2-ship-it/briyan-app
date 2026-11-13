@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>خەرجی خۆم</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="app-header form-header">
+      <button id="backBtn" class="back-btn">&rarr; گەڕانەوە</button>
+      <h1>خەرجی خۆم</h1>
+    </header>
+
+    <main class="form-body">
+      <form id="expenseForm" class="blank-form">
+        <div class="form-field">
+          <label for="workStatus">دۆخی ئیش</label>
+          <select id="workStatus" name="workStatus" required>
+            <option value="">-- هەڵبژێرە --</option>
+            <option value="لە ئیش بووم">لە ئیش بووم</option>
+            <option value="لە ئیش نەبووم">لە ئیش نەبووم</option>
+          </select>
+        </div>
+        <div class="form-field" id="dayTypeField" hidden>
+          <label for="dayType">جۆری ڕۆژ</label>
+          <select id="dayType" name="dayType">
+            <option value="">-- هەڵبژێرە --</option>
+            <option value="ڕۆژی تەواو">ڕۆژی تەواو</option>
+            <option value="نیو ڕۆژ">نیو ڕۆژ</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="ownerSelect">ناوی خاوەن ماڵ هەڵبژێرە</label>
+          <select id="ownerSelect" name="ownerSelect" required>
+            <option value="">-- هەڵبژێرە --</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="buyDate">بەرواری کڕین</label>
+          <input type="date" id="buyDate" name="buyDate" required>
+        </div>
+        <div class="form-field">
+          <label>جۆری مەسروف</label>
+          <div class="items-table">
+            <div class="items-head">
+              <span>جۆری کاڵا</span>
+              <span>بڕ</span>
+            </div>
+            <div id="itemsBody"></div>
+          </div>
+          <div class="total-expense">کۆی خەرجی: <strong id="totalAmount">0</strong></div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">پاشەکەوت</button>
+        </div>
+      </form>
+
+      <section class="records-section">
+        <h2>تۆمارەکان</h2>
+        <ul id="recordsList" class="records-list"></ul>
+        <p id="emptyMsg" class="empty-msg">هێشتا هیچ تۆمارێک نییە</p>
+        <div id="grandTotalBox" class="total-expense" hidden>کۆی هەموو خەرجیەکان: <strong id="grandTotalAmount">0</strong></div>
+      </section>
+
+      <button type="button" id="summaryBtn" class="btn-summary">کۆی مەسرەف</button>
+    </main>
+  </div>
+
+  <div id="summaryModal" class="modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>کۆی مەسرەف</h2>
+        <button id="summaryClose" class="back-btn">داخستن</button>
+      </div>
+      <div class="form-field">
+        <label for="summaryOwner">ناوی خاوەن ماڵ</label>
+        <select id="summaryOwner">
+          <option value="">-- هەڵبژێرە --</option>
+        </select>
+      </div>
+      <div id="summaryBody"></div>
+    </div>
+  </div>
+
+  <script src="expenses.js"></script>
+  <script src="sync.js"></script>
+</body>
+</html>
