@@ -12,6 +12,10 @@
     <header class="app-header form-header">
       <button id="backBtn" class="back-btn">&rarr; گەڕانەوە</button>
       <h1>ئیشی تەواو کراو</h1>
+      <div class="rate-box">
+        <label for="dollarRate">نرخی دۆلار</label>
+        <input type="number" id="dollarRate" step="any" min="0" placeholder="نرخ">
+      </div>
     </header>
 
     <main class="form-body">
@@ -87,6 +91,10 @@
               <input type="text" id="grandTotal" readonly>
             </div>
           </div>
+        </div>
+        <div class="form-field" id="totalIqdField" hidden>
+          <label for="totalIqd">کۆی پارە بە دینار</label>
+          <input type="text" id="totalIqd" readonly>
         </div>
         <div class="form-field">
           <label for="completeDate">بەرواری تەواوکردن</label>
