@@ -92,6 +92,8 @@ function updatePriceFields() {
     form.meterMarble.value = "";
   }
   recalcPrice();
+  document.getElementById("totalIqdField").hidden = !(isMohalaja || isShkan);
+  recalcIqd();
 }
 
 function recalcPrice() {
@@ -102,6 +104,31 @@ function recalcPrice() {
   document.getElementById("totalWool").value = formatNum(tw);
   document.getElementById("totalMarble").value = formatNum(tm);
   document.getElementById("grandTotal").value = formatNum(tw + tm);
+  recalcIqd();
+}
+
+function usdTotal() {
+  const n = (id) => parseFloat(document.getElementById(id).value) || 0;
+  if (document.getElementById("shkanPriceField") && !document.getElementById("shkanPriceField").hidden) {
+    return 0;
+  }
+  const gt = n("grandTotal");
+  if (gt) return gt;
+  return n("total");
+}
+
+function recalcIqd() {
+  const rate = parseFloat(document.getElementById("dollarRate").value) || 0;
+  const out = document.getElementById("totalIqd");
+  if (!out) return;
+  const form = document.getElementById("completedForm");
+  if (form.jobType.value === "شکان") {
+    const v = parseFloat(document.getElementById("shkanTotal").value || form.shkanPrice.value) || 0;
+    out.value = v ? formatNum(v) : "";
+    return;
+  }
+  const usd = usdTotal();
+  out.value = usd && rate ? formatNum(usd * rate) : "";
 }
 
 function collectAgreement(form) {
@@ -226,6 +253,8 @@ function openInfo(r) {
     ["کۆی پارە تووڵ", r.totalWool],
     ["کۆی پارە مرەبەح", r.totalMarble],
     ["کۆی پارە گشتی", r.grandTotal],
+    ["نرخی دۆلار", r.dollarRate ? `${r.dollarRate} د.ع` : ""],
+    ["کۆی پارە بە دینار", r.totalIqd],
   ]);
   html += infoSection("محالەجە", [
     ["جۆری محالەجە", s.waxType],
@@ -304,6 +333,7 @@ function renderRecords() {
       formEl.mobile.value = r.mobile;
       formEl.completeDate.value = r.completeDate;
       jobTypeEl.value = r.jobType || "";
+      document.getElementById("dollarRate").value = r.dollarRate || "";
       applyAgreement(formEl, r);
       setEditMode(r.id);
       formEl.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -334,8 +364,19 @@ document.addEventListener("DOMContentLoaded", () => {
   form.agreementType.addEventListener("change", updatePriceFields);
   form.shkanPrice.addEventListener("input", () => {
     document.getElementById("shkanTotal").value = form.shkanPrice.value;
+    recalcIqd();
   });
   document.getElementById("priceFields").addEventListener("input", recalcPrice);
+  const dollarRateEl = document.getElementById("dollarRate");
+  try {
+    dollarRateEl.value = localStorage.getItem("lastDollarRate") || "";
+  } catch {}
+  dollarRateEl.addEventListener("input", () => {
+    try {
+      localStorage.setItem("lastDollarRate", dollarRateEl.value);
+    } catch {}
+    recalcIqd();
+  });
 
   let pendingStartedId = null;
   try {
@@ -390,6 +431,8 @@ document.addEventListener("DOMContentLoaded", () => {
       mobile: mobile.replace(/[\s-]/g, ""),
       jobType: jobType.value,
       completeDate: form.completeDate.value,
+      dollarRate: document.getElementById("dollarRate").value,
+      totalIqd: document.getElementById("totalIqd").value,
       ...collectAgreement(form),
     };
     if (editingId !== null) {
