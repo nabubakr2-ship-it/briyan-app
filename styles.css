@@ -689,3 +689,20 @@ body {
 .btn-secondary:hover {
   background: #f5f5f5;
 }
+
+.rate-box {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #1a3a5c;
+}
+
+.rate-box input {
+  width: 90px;
+  padding: 4px 6px;
+  border: 1px solid #c5ccd4;
+  border-radius: 6px;
+  font-family: inherit;
+}
