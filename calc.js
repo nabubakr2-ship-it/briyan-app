@@ -20,6 +20,18 @@ function num(v) {
   return parseFloat(v) || 0;
 }
 
+function isUsd(r) {
+  return r.jobType === "محالەجە";
+}
+
+function recAmt(r) {
+  return num(r.grandTotal || r.total);
+}
+
+function itemsSum(r) {
+  return (r.items || []).reduce((x, it) => x + num(it.amount), 0);
+}
+
 function formatDate(iso) {
   if (!iso) return "";
   const d = new Date(iso + "T00:00:00");
@@ -83,23 +95,25 @@ function renderOwnerInfo(mobile, payType = "") {
 
   const myExpenses = loadJSON("myExpenses").filter((r) => r.ownerMobile === mobile);
 
-  const ownerTotal = completed.reduce((s, r) => s + num(r.grandTotal || r.total), 0);
-  const expenseTotal =
-    started.reduce((s, r) => s + (r.items || []).reduce((x, it) => x + num(it.amount), 0), 0) +
-    myExpenses.reduce((s, r) => s + (r.items || []).reduce((x, it) => x + num(it.amount), 0), 0);
+  const ownerUsd = completed.filter(isUsd).reduce((s, r) => s + recAmt(r), 0);
+  const ownerIqd = completed.filter((r) => !isUsd(r)).reduce((s, r) => s + recAmt(r), 0);
+  const startedUsd = loadJSON("startedWorks").filter(isUsd).reduce((s, r) => s + itemsSum(r), 0);
+  const startedIqd = loadJSON("startedWorks").filter((r) => !isUsd(r)).reduce((s, r) => s + itemsSum(r), 0);
+  const expenseTotal = startedUsd + startedIqd + myExpenses.reduce((s, r) => s + itemsSum(r), 0);
   const workerTotal = entries.reduce((s, e) => {
-    const exp = (e.items || []).reduce((x, it) => x + num(it.amount), 0);
-    return s + num(e.dailyRate) + exp;
+    return s + num(e.dailyRate) + itemsSum(e);
   }, 0);
-  const profit = ownerTotal - expenseTotal - workerTotal;
+  const profitUsd = ownerUsd - startedUsd;
+  const profitIqd = ownerIqd - startedIqd - myExpenses.reduce((s, r) => s + itemsSum(r), 0) - workerTotal;
 
   let html = `<div class="profit-box">
     <span class="calc-label">کۆی قازانج</span>
-    <strong class="calc-value">${formatNum(profit)}</strong>
+    <strong class="calc-value">${formatNum(profitUsd)} $</strong>
+    <strong class="calc-value">${formatNum(profitIqd)} د.ع</strong>
     <span class="calc-sub">
-      <span>${formatNum(ownerTotal)}</span> خاوەن ماڵ −
-      <span>${formatNum(expenseTotal)}</span> مەسروفات −
-      <span>${formatNum(workerTotal)}</span> کرێکار
+      خاوەن: <span>${formatNum(ownerUsd)}</span> $ + <span>${formatNum(ownerIqd)}</span> د.ع —
+      مەسروفات: <span>${formatNum(expenseTotal)}</span> —
+      کرێکار: <span>${formatNum(workerTotal)}</span>
     </span>
   </div>`;
   const row = (k, v) =>
@@ -124,7 +138,7 @@ function renderOwnerInfo(mobile, payType = "") {
   completed.forEach((c) => {
     html += `<h3 class="info-section">ئیشی تەواو کراو — ${formatDate(c.completeDate)}</h3>`;
     html += row("جۆری ئیش", c.jobType) + row("ڕێک کەوتن", agreementText(c));
-    html += row("جۆری پارەدان", c.paymentType) + row("کۆی پارە", c.grandTotal || c.total);
+    html += row("جۆری پارەدان", c.paymentType) + row("کۆی پارە", `${c.grandTotal || c.total} ${isUsd(c) ? "$" : "د.ع"}`);
   });
 
   if (myExpenses.length) {
@@ -162,11 +176,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (backBtn) backBtn.addEventListener("click", () => (window.location.href = "index.html"));
 
   const completed = loadJSON(COMPLETED_KEY);
-  const ownersTotal = completed.reduce((s, r) => {
-    if (r.grandTotal) return s + num(r.grandTotal);
-    if (r.total) return s + num(r.total);
-    return s;
-  }, 0);
+  const ownersUsd = completed.filter(isUsd).reduce((s, r) => s + recAmt(r), 0);
+  const ownersIqd = completed.filter((r) => !isUsd(r)).reduce((s, r) => s + recAmt(r), 0);
+  const startedWorks = loadJSON("startedWorks");
+  const startedUsd = startedWorks.filter(isUsd).reduce((s, r) => s + itemsSum(r), 0);
+  const startedIqd = startedWorks.filter((r) => !isUsd(r)).reduce((s, r) => s + itemsSum(r), 0);
 
   const entries = loadJSON(WORKERS_KEY);
   const workersTotal = entries.reduce((s, r) => {
@@ -179,11 +193,15 @@ document.addEventListener("DOMContentLoaded", () => {
     0
   );
 
-  document.getElementById("ownersTotal").textContent = formatNum(ownersTotal);
+  document.getElementById("ownersTotalUsd").textContent = formatNum(ownersUsd);
+  document.getElementById("ownersTotalIqd").textContent = formatNum(ownersIqd);
   document.getElementById("workersTotal").textContent = formatNum(workersTotal);
   document.getElementById("expensesTotal").textContent = formatNum(myExpensesTotal);
-  document.getElementById("remaining").textContent = formatNum(
-    ownersTotal - workersTotal - myExpensesTotal
+  document.getElementById("remainingUsd").textContent = formatNum(
+    ownersUsd - startedUsd
+  );
+  document.getElementById("remainingIqd").textContent = formatNum(
+    ownersIqd - workersTotal - myExpensesTotal - startedIqd
   );
 
   const modal = document.getElementById("ownerModal");
@@ -235,26 +253,27 @@ document.addEventListener("DOMContentLoaded", () => {
         .filter((r) => r.paymentType === pay && !r.archived)
         .slice()
         .reverse();
-      let total = 0;
+      let totalUsd = 0;
+      let totalIqd = 0;
       let html = "";
       if (records.length) {
         html = `<table class="summary-table"><thead><tr>
           <th>خاوەن ماڵ</th><th>بەروار</th><th>جۆری ئیش</th><th>کۆی پارە</th>
         </tr></thead><tbody>`;
         records.forEach((r) => {
-          const amt = num(r.grandTotal || r.total);
-          total += amt;
+          const amt = recAmt(r);
+          if (isUsd(r)) totalUsd += amt; else totalIqd += amt;
           html += `<tr>
             <td>${escapeHtml(r.ownerName || "—")}</td>
             <td>${formatDate(r.completeDate)}</td>
             <td>${escapeHtml(r.jobType || "—")}</td>
-            <td>${formatNum(amt)}</td>
+            <td>${formatNum(amt)} ${isUsd(r) ? "$" : "د.ع"}</td>
           </tr>`;
         });
         html += "</tbody></table>";
       }
       payModalBody.innerHTML = html || "<p class='empty-msg'>هیچ تۆمارێک نییە</p>";
-      document.getElementById("payTotal").textContent = formatNum(total);
+      document.getElementById("payTotal").textContent = `${formatNum(totalUsd)} $ + ${formatNum(totalIqd)} د.ع`;
       payModal.hidden = false;
     });
   });
