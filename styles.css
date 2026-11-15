@@ -333,6 +333,24 @@ body {
   width: 110px;
 }
 
+.inst-pay-all {
+  border: 1px solid #b7dfc8;
+  background: #d2ecdd;
+  color: #0f5132;
+  border-radius: 20px;
+  padding: 4px 12px;
+  margin-inline-start: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.inst-pay-all:hover {
+  background: #b7e4cc;
+}
+
 .inst-date {
   padding: 5px 8px;
   border: 1px solid #c5ccd4;
@@ -713,27 +731,38 @@ body {
 
 .pay-btns {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   margin-top: 16px;
 }
 
 .pay-btn {
   flex: 1;
-  padding: 14px;
+  padding: 16px 10px;
   border: none;
-  border-radius: 10px;
+  border-radius: 14px;
   color: #fff;
-  font-size: 1rem;
+  font-size: 1.05rem;
+  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
 }
 
-.pay-cash { background: #1a7f4b; }
-.pay-cash:hover { background: #156038; }
-.pay-debt { background: #9a6509; }
-.pay-debt:hover { background: #7d5006; }
-.pay-install { background: #1a3a5c; }
-.pay-install:hover { background: #24507e; }
+.pay-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.24);
+  filter: brightness(1.06);
+}
+
+.pay-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.pay-cash { background: linear-gradient(135deg, #1a7f4b, #25a065); }
+.pay-debt { background: linear-gradient(135deg, #9a6509, #c98a1b); }
+.pay-install { background: linear-gradient(135deg, #1a3a5c, #2f5f96); }
 
 .pay-btn.active {
   outline: 3px solid #fff;
@@ -971,4 +1000,54 @@ body {
   border: 1px solid #c5ccd4;
   border-radius: 6px;
   font-family: inherit;
+}
+
+
+@media (max-width: 640px) {
+  #payModal .modal-card {
+    max-width: 96vw;
+    padding: 14px;
+  }
+
+  #payModal .summary-table {
+    font-size: 0.74rem;
+  }
+
+  #payModal .summary-table th {
+    white-space: normal;
+    padding: 6px 4px;
+    font-size: 0.72rem;
+  }
+
+  #payModal .summary-table td {
+    padding: 6px 4px;
+    font-size: 0.74rem;
+  }
+
+  #payModal .inst-pay,
+  #payModal .inst-pay-all {
+    padding: 4px 9px;
+    font-size: 0.72rem;
+    margin-inline-start: 4px;
+  }
+
+  #payModal .inst-pay-inline {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  #payModal .inst-amount,
+  #payModal .inst-pay-inline .inst-amount {
+    width: 90px;
+  }
+
+  #payModal .inst-date {
+    font-size: 0.78rem;
+    padding: 4px 6px;
+  }
+
+  #payModal .inst-save {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
 }
