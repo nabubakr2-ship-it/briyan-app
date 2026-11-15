@@ -368,7 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let remainingTotal = 0;
         if (records.length) {
           html = `<table class="summary-table"><thead><tr>
-            <th>خاوەن ماڵ</th><th>بەروار</th><th>کۆی پارە</th><th>هەر قیست</th><th>ژمارە</th><th>وەرگیراو</th><th>ماوە</th><th></th>
+            <th>خاوەن ماڵ</th><th>کۆی پارە</th><th>هەر قیست</th><th>ژمارە</th><th>وەرگیراو</th><th>ماوە</th><th></th>
           </tr></thead><tbody>`;
           records.forEach((r) => {
             const amt = iqdAmt(r);
@@ -382,7 +382,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const paidCnt = paidList.length;
             html += `<tr>
               <td>${escapeHtml(r.ownerName || "—")}</td>
-              <td>${formatDate(r.completeDate)}</td>
               <td>${formatNum(amt)} د.ع</td>
               <td>${instAmt ? formatNum(instAmt) : "—"}</td>
               <td>${instCnt || "—"}</td>
@@ -438,7 +437,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let remainingTotal = 0;
         if (records.length) {
           html = `<table class="summary-table"><thead><tr>
-            <th>خاوەن ماڵ</th><th>بەروار</th><th>جۆری ئیش</th><th>کۆی پارە</th><th>وەرگیراو</th><th>ماوە</th><th></th>
+            <th>خاوەن ماڵ</th><th>کۆی پارە</th><th>وەرگیراو</th><th>ماوە</th><th></th>
           </tr></thead><tbody>`;
           records.forEach((r) => {
             const amt = iqdAmt(r);
@@ -448,8 +447,6 @@ document.addEventListener("DOMContentLoaded", () => {
             remainingTotal += leftAmt;
             html += `<tr>
               <td>${escapeHtml(r.ownerName || "—")}</td>
-              <td>${formatDate(r.completeDate)}</td>
-              <td>${escapeHtml(r.jobType || "—")}</td>
               <td>${formatNum(amt)} د.ع</td>
               <td>${paidAmt ? `${formatNum(paidAmt)} د.ع` : "—"}</td>
               <td>${formatNum(leftAmt)} د.ع</td>
@@ -503,7 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let remainingTotal = 0;
         if (records.length) {
           html = `<table class="summary-table"><thead><tr>
-            <th>خاوەن ماڵ</th><th>بەروار</th><th>جۆری ئیش</th><th>کۆی قەرز</th><th>وەرگیراوەوە</th><th>ماوە</th><th></th>
+            <th>خاوەن ماڵ</th><th>کۆی قەرز</th><th>وەرگیراوەوە</th><th>ماوە</th><th></th>
           </tr></thead><tbody>`;
           records.forEach((r) => {
             const amt = iqdAmt(r);
@@ -513,8 +510,6 @@ document.addEventListener("DOMContentLoaded", () => {
             remainingTotal += leftAmt;
             html += `<tr>
               <td>${escapeHtml(r.ownerName || "—")}</td>
-              <td>${formatDate(r.completeDate)}</td>
-              <td>${escapeHtml(r.jobType || "—")}</td>
               <td>${formatNum(amt)} د.ع</td>
               <td>${paidAmt ? `${formatNum(paidAmt)} د.ع` : "—"}</td>
               <td>${formatNum(leftAmt)} د.ع</td>
