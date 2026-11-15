@@ -53,12 +53,12 @@ function renderRecords() {
         <strong>${escapeHtml(r.workerName)}</strong>
         <span class="record-meta">${r.ownerName ? escapeHtml(r.ownerName) + " — " : ""}${formatDate(r.entryDate)} — ${escapeHtml(r.dailyStatus)}${r.postDeliver ? " — پۆست: " + escapeHtml(r.postDeliver) : ""}${total ? " — خەرجی: " + formatNum(total) : ""}</span>
       </div>
-      <span class="record-mobile">${escapeHtml(r.dailyRate)}</span>
-      <div class="record-actions">
-        <button class="record-delete" title="ڕەشکردنەوە">&times;</button>
+      <div class="record-side">
+        <span class="record-mobile">${escapeHtml(r.dailyRate)}</span>
+        <button class="record-del" title="ڕەشکردنەوە">&times;</button>
       </div>
     `;
-    li.querySelector(".record-delete").addEventListener("click", () => {
+    li.querySelector(".record-del").addEventListener("click", () => {
       localStorage.setItem(
         STORAGE_KEY,
         JSON.stringify(loadJSON(STORAGE_KEY).filter((x) => x.id !== r.id))
@@ -96,10 +96,12 @@ function renderAccounts() {
         <strong>${escapeHtml(a.name)}</strong>
         <span class="record-meta acc-creds">ID: ${escapeHtml(a.id)} — PASS: ${escapeHtml(a.password)}</span>
       </div>
-      <span class="record-mobile">${escapeHtml(a.mobile)}${a.role ? " — " + escapeHtml(a.role) : ""}</span>
+      <div class="record-side">
+        <span class="record-mobile">${escapeHtml(a.mobile)}${a.role ? " — " + escapeHtml(a.role) : ""}</span>
+        <button class="record-del" title="ڕەشکردنەوە">&times;</button>
+      </div>
       <div class="record-actions">
         <button class="btn-reset" title="پاسۆردی نوێ">پاسۆردی نوێ</button>
-        <button class="record-delete" title="ڕەشکردنەوە">&times;</button>
       </div>
     `;
     li.querySelector(".btn-reset").addEventListener("click", () => {
@@ -115,7 +117,7 @@ function renderAccounts() {
       renderAccounts();
       alert(`پاسۆردی نوێ: ${a.password}`);
     });
-    li.querySelector(".record-delete").addEventListener("click", () => {
+    li.querySelector(".record-del").addEventListener("click", () => {
       saveAccounts(accounts.filter((x) => x.id !== a.id));
       renderAccounts();
     });
@@ -155,84 +157,6 @@ document.addEventListener("DOMContentLoaded", () => {
     alert(`ئایدی: ${account.id}\nپاسۆرد: ${account.password}`);
   });
   renderAccounts();
-
-  const modal = document.getElementById("allSummaryModal");
-  const filterWorker = document.getElementById("filterWorker");
-  const filterOwner = document.getElementById("filterOwner");
-
-  function fillFilterOptions() {
-    const records = loadJSON(STORAGE_KEY);
-    const workers = [...new Set(records.map((r) => r.workerName).filter(Boolean))];
-    const owners = [...new Set(records.map((r) => r.ownerName).filter(Boolean))];
-    filterWorker.innerHTML = '<option value="">-- هەموو کرێکاران --</option>';
-    filterOwner.innerHTML = '<option value="">-- هەموو خاوەن ماڵەکان --</option>';
-    workers.forEach((w) => {
-      const opt = document.createElement("option");
-      opt.value = w;
-      opt.textContent = w;
-      filterWorker.appendChild(opt);
-    });
-    owners.forEach((o) => {
-      const opt = document.createElement("option");
-      opt.value = o;
-      opt.textContent = o;
-      filterOwner.appendChild(opt);
-    });
-  }
-
-  function renderAllSummary() {
-    const w = filterWorker.value;
-    const o = filterOwner.value;
-    const records = loadJSON(STORAGE_KEY)
-      .filter((r) => (!w || r.workerName === w) && (!o || r.ownerName === o))
-      .slice()
-      .reverse();
-    let html = "";
-    let grand = 0;
-    if (records.length) {
-      html = `<table class="summary-table">
-        <thead><tr>
-          <th>کرێکار</th><th>خاوەن ماڵ</th><th>بەروار</th><th>دۆخ</th><th>پۆست</th><th>خەرجی</th><th>کۆی پارە</th>
-        </tr></thead><tbody>`;
-      records.forEach((r) => {
-        const items = r.items || [];
-        const exp = items.reduce((s, it) => s + (parseFloat(it.amount) || 0), 0);
-        const itemNames = items
-          .map((it) => [it.type, it.amount].filter(Boolean).join(": "))
-          .filter(Boolean)
-          .join("، ");
-        const rate = parseFloat(r.dailyRate) || 0;
-        grand += rate + exp;
-        html += `<tr>
-          <td>${escapeHtml(r.workerName || "—")}</td>
-          <td>${escapeHtml(r.ownerName || "—")}</td>
-          <td>${formatDate(r.entryDate)}</td>
-          <td>${escapeHtml(r.dailyStatus || "—")}</td>
-          <td>${escapeHtml(r.postDeliver || "—")}</td>
-          <td>${escapeHtml(itemNames || "—")}</td>
-          <td>${formatNum(rate + exp)}</td>
-        </tr>`;
-      });
-      html += "</tbody></table>";
-    }
-    document.getElementById("allSummaryBody").innerHTML =
-      html || "<p class='empty-msg'>هیچ تۆمارێک نییە</p>";
-    document.getElementById("allGrandTotal").textContent = formatNum(grand);
-  }
-
-  document.getElementById("allSummaryBtn").addEventListener("click", () => {
-    fillFilterOptions();
-    renderAllSummary();
-    modal.hidden = false;
-  });
-  filterWorker.addEventListener("change", renderAllSummary);
-  filterOwner.addEventListener("change", renderAllSummary);
-  document.getElementById("allSummaryClose").addEventListener("click", () => {
-    modal.hidden = true;
-  });
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.hidden = true;
-  });
 
   renderRecords();
 });

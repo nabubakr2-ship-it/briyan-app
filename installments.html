@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>پارەی قیست</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="app-header form-header">
+      <button id="backBtn" class="back-btn">&rarr; گەڕانەوە</button>
+      <h1>پارەی قیست</h1>
+    </header>
+
+    <main class="form-body">
+      <section class="records-section">
+        <h2>قیستە چاوەڕوانکراوەکان</h2>
+        <ul id="instList" class="records-list"></ul>
+        <p id="instEmpty" class="empty-msg">هیچ تۆمارێکی قیست نییە</p>
+      </section>
+    </main>
+  </div>
+
+  <script src="installments.js"></script>
+  <script src="sync.js"></script>
+</body>
+</html>

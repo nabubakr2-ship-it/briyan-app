@@ -1,5 +1,5 @@
 const STORAGE_KEY = "workerEntries";
-const KEYS = ["viewings", "promises", "startedWorks", "completedWorks"];
+const KEYS = ["startedWorks"];
 
 const RATES = {
   "ڕۆژی تەواو": 25000,
@@ -100,8 +100,18 @@ function renderRecords(workerId) {
         <strong>${escapeHtml(r.ownerName || "—")}</strong>
         <span class="record-meta">${escapeHtml(r.dailyStatus)} — ${escapeHtml(r.jobType)}</span>
       </div>
-      <span class="record-mobile">${escapeHtml(formatDate(r.entryDate))}</span>
+      <div class="record-side">
+        <span class="record-mobile">${escapeHtml(formatDate(r.entryDate))}</span>
+        <button class="record-del" title="ڕەشکردنەوە">&times;</button>
+      </div>
     `;
+    li.querySelector(".record-del").addEventListener("click", () => {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(loadJSON(STORAGE_KEY).filter((x) => x.id !== r.id))
+      );
+      renderRecords(worker.id);
+    });
     list.appendChild(li);
   });
 }

@@ -99,15 +99,17 @@ function renderOwnerInfo(mobile, payType = "") {
   const completed = loadJSON(COMPLETED_KEY).filter(
     (r) => r.mobile === mobile && (!payType || r.paymentType === payType)
   );
+  const ownerNameRef =
+    (viewings[0] || promises[0] || started[0] || completed[0] || {}).ownerName || "";
   const entries = loadJSON(WORKERS_KEY).filter(
-    (r) => r.ownerMobile === mobile || r.ownerName === (viewings[0] || promises[0] || started[0] || completed[0] || {}).ownerName
+    (r) => r.ownerMobile === mobile || (ownerNameRef !== "" && r.ownerName === ownerNameRef)
   );
 
   const myExpenses = loadJSON("myExpenses").filter((r) => r.ownerMobile === mobile);
 
   const ownerTotal = completed.reduce((s, r) => s + iqdAmt(r), 0);
   const expenseTotal =
-    loadJSON("startedWorks").reduce((s, r) => s + itemsSum(r), 0) +
+    started.reduce((s, r) => s + itemsSum(r), 0) +
     myExpenses.reduce((s, r) => s + itemsSum(r), 0);
   const workerTotal = entries.reduce((s, e) => {
     return s + num(e.dailyRate) + itemsSum(e);
@@ -160,20 +162,27 @@ function renderOwnerInfo(mobile, payType = "") {
 
   if (entries.length) {
     html += `<h3 class="info-section">کرێکاران</h3><table class="summary-table"><thead><tr>
-      <th>کرێکار</th><th>بەروار</th><th>دۆخ</th><th>بڕی ڕۆژانە</th><th>کۆی پارە</th>
+      <th>کرێکار</th><th>بەروار</th><th>دۆخ</th><th>بڕی ڕۆژانە</th><th>مەسروفات</th><th>کۆی پارە</th>
     </tr></thead><tbody>`;
     entries.forEach((e) => {
       const exp = (e.items || []).reduce((s, it) => s + num(it.amount), 0);
+      const expText = (e.items || [])
+        .map((it) => [it.type, it.amount].filter(Boolean).join(": "))
+        .filter(Boolean)
+        .join("، ");
       html += `<tr>
         <td>${escapeHtml(e.workerName || "—")}</td>
         <td>${formatDate(e.entryDate)}</td>
         <td>${escapeHtml(e.dailyStatus || "—")}</td>
         <td>${formatNum(num(e.dailyRate))}</td>
+        <td>${escapeHtml(expText || "—")}</td>
         <td>${formatNum(num(e.dailyRate) + exp)}</td>
       </tr>`;
     });
     html += "</tbody></table>";
   }
+
+  html += `<div class="info-row total-row"><span>کۆی گشتی کرێکار و مەسروف</span><span>${formatNum(workerTotal + expenseTotal)} د.ع</span></div>`;
 
   body.innerHTML = html || "<p class='empty-msg'>هیچ زانیارییەک نییە بۆ ئەم خاوەن ماڵە</p>";
 }
@@ -201,6 +210,33 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("expensesTotal").textContent = formatNum(myExpensesTotal);
   document.getElementById("remaining").textContent = formatNum(
     ownersTotal - workersTotal - myExpensesTotal
+  );
+
+  const debtRecords = completed.filter(
+    (r) => (r.paymentType === "قیست" || r.paymentType === "قەرز") && !r.archived
+  );
+  document.getElementById("debtTotal").textContent = formatNum(
+    debtRecords.reduce((s, r) => s + iqdAmt(r), 0)
+  );
+  document.getElementById("debtPaidTotal").textContent = formatNum(
+    debtRecords.reduce(
+      (s, r) =>
+        s +
+        (r.installmentsPaid || []).reduce((x, p) => x + num(p.amount), 0) +
+        (r.debtPayments || []).reduce((x, p) => x + num(p.amount), 0),
+      0
+    )
+  );
+
+  const cashRecords = completed.filter((r) => r.paymentType === "نەقد" && !r.archived);
+  const cashPaid = cashRecords.reduce(
+    (s, r) => s + (r.cashPayments || []).reduce((x, p) => x + num(p.amount), 0),
+    0
+  );
+  const cashTotal = cashRecords.reduce((s, r) => s + iqdAmt(r), 0);
+  document.getElementById("cashPaidTotal").textContent = formatNum(cashPaid);
+  document.getElementById("cashLeftTotal").textContent = formatNum(
+    Math.max(0, cashTotal - cashPaid)
   );
 
   const modal = document.getElementById("ownerModal");
@@ -254,6 +290,206 @@ document.addEventListener("DOMContentLoaded", () => {
         .reverse();
       let total = 0;
       let html = "";
+      if (pay === "قیست") {
+        let remainingTotal = 0;
+        if (records.length) {
+          html = `<table class="summary-table"><thead><tr>
+            <th>خاوەن ماڵ</th><th>بەروار</th><th>کۆی پارە</th><th>هەر قیست</th><th>ژمارە</th><th>وەرگیراو</th><th>ماوە</th><th></th>
+          </tr></thead><tbody>`;
+          records.forEach((r) => {
+            const amt = iqdAmt(r);
+            total += amt;
+            const instAmt = num(r.installmentAmount);
+            const instCnt = num(r.installmentCount);
+            const paidList = r.installmentsPaid || [];
+            const paidAmt = paidList.reduce((s, p) => s + num(p.amount), 0);
+            const leftAmt = Math.max(0, amt - paidAmt);
+            remainingTotal += leftAmt;
+            const paidCnt = paidList.length;
+            html += `<tr>
+              <td>${escapeHtml(r.ownerName || "—")}</td>
+              <td>${formatDate(r.completeDate)}</td>
+              <td>${formatNum(amt)} د.ع</td>
+              <td>${instAmt ? formatNum(instAmt) : "—"}</td>
+              <td>${instCnt || "—"}</td>
+              <td>${paidAmt ? `${formatNum(paidAmt)} د.ع (${paidCnt}/${instCnt || "؟"})` : "—"}</td>
+              <td>${formatNum(leftAmt)} د.ع</td>
+              <td>${leftAmt > 0 ? `<button type="button" class="inst-pay" data-id="${r.id}">وەرگیرا</button>` : ""}</td>
+            </tr>`;
+          });
+          html += "</tbody></table>";
+        }
+        payModalBody.innerHTML = html || "<p class='empty-msg'>هیچ تۆمارێک نییە</p>";
+        document.getElementById("payTotal").textContent = `کۆی پارە: ${formatNum(total)} د.ع — ماوە: ${formatNum(remainingTotal)} د.ع`;
+        payModalBody.querySelectorAll(".inst-pay").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const cell = btn.closest("td");
+            cell.innerHTML = `
+              <div class="inst-pay-inline">
+                <input type="number" class="inst-amount" min="0" step="any" placeholder="بڕی پارە (د.ع)">
+                <input type="date" class="inst-date" value="${new Date().toISOString().slice(0, 10)}">
+                <button type="button" class="inst-save">تۆمار</button>
+              </div>`;
+            const input = cell.querySelector(".inst-amount");
+            const dateInput = cell.querySelector(".inst-date");
+            input.focus();
+            const save = () => {
+              const val = parseFloat(input.value);
+              if (!val || val <= 0) {
+                alert("بڕی پارە نادروستە");
+                return;
+              }
+              const all = loadJSON(COMPLETED_KEY);
+              const rec = all.find((x) => x.id === Number(btn.dataset.id));
+              if (rec) {
+                rec.installmentsPaid = rec.installmentsPaid || [];
+                rec.installmentsPaid.push({
+                  date: dateInput.value || new Date().toISOString().slice(0, 10),
+                  amount: val,
+                });
+                localStorage.setItem(COMPLETED_KEY, JSON.stringify(all));
+                document.querySelector(`.pay-btn[data-pay="${pay}"]`).click();
+              }
+            };
+            cell.querySelector(".inst-save").addEventListener("click", save);
+            input.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") save();
+            });
+          });
+        });
+        payModal.hidden = false;
+        return;
+      }
+      if (pay === "نەقد") {
+        let remainingTotal = 0;
+        if (records.length) {
+          html = `<table class="summary-table"><thead><tr>
+            <th>خاوەن ماڵ</th><th>بەروار</th><th>جۆری ئیش</th><th>کۆی پارە</th><th>وەرگیراو</th><th>ماوە</th><th></th>
+          </tr></thead><tbody>`;
+          records.forEach((r) => {
+            const amt = iqdAmt(r);
+            total += amt;
+            const paidAmt = (r.cashPayments || []).reduce((s, p) => s + num(p.amount), 0);
+            const leftAmt = Math.max(0, amt - paidAmt);
+            remainingTotal += leftAmt;
+            html += `<tr>
+              <td>${escapeHtml(r.ownerName || "—")}</td>
+              <td>${formatDate(r.completeDate)}</td>
+              <td>${escapeHtml(r.jobType || "—")}</td>
+              <td>${formatNum(amt)} د.ع</td>
+              <td>${paidAmt ? `${formatNum(paidAmt)} د.ع` : "—"}</td>
+              <td>${formatNum(leftAmt)} د.ع</td>
+              <td>${leftAmt > 0 ? `<button type="button" class="inst-pay" data-id="${r.id}">وەرگرتن</button>` : ""}</td>
+            </tr>`;
+          });
+          html += "</tbody></table>";
+        }
+        payModalBody.innerHTML = html || "<p class='empty-msg'>هیچ تۆمارێک نییە</p>";
+        document.getElementById("payTotal").textContent = `کۆی پارە: ${formatNum(total)} د.ع — ماوە: ${formatNum(remainingTotal)} د.ع`;
+        payModalBody.querySelectorAll(".inst-pay").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const cell = btn.closest("td");
+            cell.innerHTML = `
+              <div class="inst-pay-inline">
+                <input type="number" class="inst-amount" min="0" step="any" placeholder="بڕی پارە (د.ع)">
+                <input type="date" class="inst-date" value="${new Date().toISOString().slice(0, 10)}">
+                <button type="button" class="inst-save">تۆمار</button>
+              </div>`;
+            const input = cell.querySelector(".inst-amount");
+            const dateInput = cell.querySelector(".inst-date");
+            input.focus();
+            const save = () => {
+              const val = parseFloat(input.value);
+              if (!val || val <= 0) {
+                alert("بڕی پارە نادروستە");
+                return;
+              }
+              const all = loadJSON(COMPLETED_KEY);
+              const rec = all.find((x) => x.id === Number(btn.dataset.id));
+              if (rec) {
+                rec.cashPayments = rec.cashPayments || [];
+                rec.cashPayments.push({
+                  date: dateInput.value || new Date().toISOString().slice(0, 10),
+                  amount: val,
+                });
+                localStorage.setItem(COMPLETED_KEY, JSON.stringify(all));
+                document.querySelector(`.pay-btn[data-pay="${pay}"]`).click();
+              }
+            };
+            cell.querySelector(".inst-save").addEventListener("click", save);
+            input.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") save();
+            });
+          });
+        });
+        payModal.hidden = false;
+        return;
+      }
+      if (pay === "قەرز") {
+        let remainingTotal = 0;
+        if (records.length) {
+          html = `<table class="summary-table"><thead><tr>
+            <th>خاوەن ماڵ</th><th>بەروار</th><th>جۆری ئیش</th><th>کۆی قەرز</th><th>وەرگیراوەوە</th><th>ماوە</th><th></th>
+          </tr></thead><tbody>`;
+          records.forEach((r) => {
+            const amt = iqdAmt(r);
+            total += amt;
+            const paidAmt = (r.debtPayments || []).reduce((s, p) => s + num(p.amount), 0);
+            const leftAmt = Math.max(0, amt - paidAmt);
+            remainingTotal += leftAmt;
+            html += `<tr>
+              <td>${escapeHtml(r.ownerName || "—")}</td>
+              <td>${formatDate(r.completeDate)}</td>
+              <td>${escapeHtml(r.jobType || "—")}</td>
+              <td>${formatNum(amt)} د.ع</td>
+              <td>${paidAmt ? `${formatNum(paidAmt)} د.ع` : "—"}</td>
+              <td>${formatNum(leftAmt)} د.ع</td>
+              <td>${leftAmt > 0 ? `<button type="button" class="inst-pay" data-id="${r.id}">دانەوە</button>` : ""}</td>
+            </tr>`;
+          });
+          html += "</tbody></table>";
+        }
+        payModalBody.innerHTML = html || "<p class='empty-msg'>هیچ تۆمارێک نییە</p>";
+        document.getElementById("payTotal").textContent = `کۆی قەرز: ${formatNum(total)} د.ع — ماوە: ${formatNum(remainingTotal)} د.ع`;
+        payModalBody.querySelectorAll(".inst-pay").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const cell = btn.closest("td");
+            cell.innerHTML = `
+              <div class="inst-pay-inline">
+                <input type="number" class="inst-amount" min="0" step="any" placeholder="بڕی پارە (د.ع)">
+                <input type="date" class="inst-date" value="${new Date().toISOString().slice(0, 10)}">
+                <button type="button" class="inst-save">تۆمار</button>
+              </div>`;
+            const input = cell.querySelector(".inst-amount");
+            const dateInput = cell.querySelector(".inst-date");
+            input.focus();
+            const save = () => {
+              const val = parseFloat(input.value);
+              if (!val || val <= 0) {
+                alert("بڕی پارە نادروستە");
+                return;
+              }
+              const all = loadJSON(COMPLETED_KEY);
+              const rec = all.find((x) => x.id === Number(btn.dataset.id));
+              if (rec) {
+                rec.debtPayments = rec.debtPayments || [];
+                rec.debtPayments.push({
+                  date: dateInput.value || new Date().toISOString().slice(0, 10),
+                  amount: val,
+                });
+                localStorage.setItem(COMPLETED_KEY, JSON.stringify(all));
+                document.querySelector(`.pay-btn[data-pay="${pay}"]`).click();
+              }
+            };
+            cell.querySelector(".inst-save").addEventListener("click", save);
+            input.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") save();
+            });
+          });
+        });
+        payModal.hidden = false;
+        return;
+      }
       if (records.length) {
         html = `<table class="summary-table"><thead><tr>
           <th>خاوەن ماڵ</th><th>بەروار</th><th>جۆری ئیش</th><th>کۆی پارە</th>

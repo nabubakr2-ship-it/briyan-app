@@ -70,7 +70,7 @@ function escapeHtml(s) {
 
 function stripRecord(r) {
   const o = { ...r };
-  ["id", "sentToContractor", "promised", "viewingId"].forEach((k) => delete o[k]);
+  ["id", "sentToContractor", "promised", "viewingId", "sentToWork"].forEach((k) => delete o[k]);
   return o;
 }
 
@@ -203,11 +203,13 @@ function renderRecords() {
         <strong>${escapeHtml(r.ownerName)}</strong>
         <span class="record-meta">${formatDate(r.startDate)}${totalText ? " — " + escapeHtml(totalText) : ""}${escapeHtml(agreementInfo(r))}</span>
       </div>
-      <span class="record-mobile">${escapeHtml(r.mobile)}</span>
+      <div class="record-side">
+        <span class="record-mobile">${escapeHtml(r.mobile)}</span>
+        <button class="record-del" title="ڕەشکردنەوە">&times;</button>
+      </div>
       <div class="record-actions">
         <button class="btn-promise btn-send-done">ناردن بۆ تەواوکردن</button>
         <button class="record-edit" title="گۆڕانکاری">✎</button>
-        <button class="record-delete" title="ڕەشکردنەوە">&times;</button>
       </div>
     `;
     li.querySelector(".btn-send-done").addEventListener("click", () => {
@@ -235,7 +237,7 @@ function renderRecords() {
       form.scrollIntoView({ behavior: "smooth", block: "start" });
       form.ownerName.focus();
     });
-    li.querySelector(".record-delete").addEventListener("click", () => {
+    li.querySelector(".record-del").addEventListener("click", () => {
       localStorage.setItem(
         STORAGE_KEY,
         JSON.stringify(loadRecords().filter((x) => x.id !== r.id))

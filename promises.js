@@ -35,7 +35,7 @@ function escapeHtml(s) {
 
 function stripRecord(r) {
   const o = { ...r };
-  ["id", "sentToContractor", "promised", "viewingId"].forEach((k) => delete o[k]);
+  ["id", "sentToContractor", "promised", "viewingId", "sentToWork"].forEach((k) => delete o[k]);
   return o;
 }
 
@@ -148,8 +148,14 @@ function renderSentList() {
         <strong>${escapeHtml(v.ownerName)}</strong>
         <span class="record-meta">${escapeHtml(v.jobType)} — ${formatDate(v.viewDate)}</span>
       </div>
-      <span class="record-mobile">${escapeHtml(v.mobile)}</span>
-      <button class="btn-promise">بەڵێن بدە</button>
+      <div class="record-side">
+        <span class="record-mobile">${escapeHtml(v.mobile)}</span>
+        <button class="record-del" title="ڕەشکردنەوە">&times;</button>
+      </div>
+      <div class="sent-actions">
+        <button class="btn-promise">بەڵێن بدە</button>
+        <button class="btn-cancel">پاشگەز بوونەوە</button>
+      </div>
     `;
     li.querySelector(".btn-promise").addEventListener("click", () => {
       const form = document.getElementById("promiseForm");
@@ -161,6 +167,19 @@ function renderSentList() {
       pendingViewingId = v.id;
       form.scrollIntoView({ behavior: "smooth", block: "start" });
       form.promiseDate.focus();
+    });
+    li.querySelector(".btn-cancel").addEventListener("click", () => {
+      const all = loadJSON(VIEWINGS_KEY);
+      const target = all.find((x) => x.id === v.id);
+      if (target) {
+        target.sentToContractor = false;
+        saveJSON(VIEWINGS_KEY, all);
+        renderSentList();
+      }
+    });
+    li.querySelector(".record-del").addEventListener("click", () => {
+      saveJSON(VIEWINGS_KEY, loadJSON(VIEWINGS_KEY).filter((x) => x.id !== v.id));
+      renderSentList();
     });
     list.appendChild(li);
   });
@@ -186,7 +205,10 @@ function renderPromiseList() {
         <strong>${escapeHtml(p.ownerName)}</strong>
         <span class="record-meta">${escapeHtml(p.jobType)} — ${formatDate(p.promiseDate)}${escapeHtml(agreementInfo(p))}</span>
       </div>
-      <span class="record-mobile">${escapeHtml(p.mobile)}</span>
+      <div class="record-side">
+        <span class="record-mobile">${escapeHtml(p.mobile)}</span>
+        <button class="record-del" title="ڕەشکردنەوە">&times;</button>
+      </div>
       <div class="record-actions">
         <button class="btn-promise btn-send-work">ناردن بۆ ئیش</button>
       </div>
@@ -194,6 +216,10 @@ function renderPromiseList() {
     li.querySelector(".btn-send-work").addEventListener("click", () => {
       localStorage.setItem("pendingPromise", JSON.stringify(p));
       window.location.href = "started.html";
+    });
+    li.querySelector(".record-del").addEventListener("click", () => {
+      saveJSON(PROMISES_KEY, loadJSON(PROMISES_KEY).filter((x) => x.id !== p.id));
+      renderPromiseList();
     });
     list.appendChild(li);
   });

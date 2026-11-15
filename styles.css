@@ -157,6 +157,32 @@ body {
   order: 3;
 }
 
+.record-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  order: 3;
+}
+
+.record-side .record-mobile {
+  order: 0;
+}
+
+.record-del {
+  background: none;
+  border: none;
+  color: #c0392b;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.record-del:hover {
+  color: #7b1f14;
+}
+
 .record-item.sent {
   opacity: 0.75;
 }
@@ -170,6 +196,149 @@ body {
   display: flex;
   gap: 4px;
   order: -1;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.send-choice {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.send-choice[hidden] {
+  display: none;
+}
+
+.send-opt {
+  border: 1px solid;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.send-yes {
+  color: #156038;
+  background: #e6f4ec;
+  border-color: #b7dfc8;
+}
+
+.send-yes:hover {
+  background: #d2ecdd;
+}
+
+.send-no {
+  color: #c0392b;
+  background: #fdecea;
+  border-color: #e5b3ad;
+}
+
+.send-no:hover {
+  background: #f9d9d4;
+}
+
+.inst-pay {
+  border: 1px solid #b7dfc8;
+  background: #e6f4ec;
+  color: #156038;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.inst-pay:hover {
+  background: #d2ecdd;
+}
+
+.inst-pay-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.inst-pay-toggle {
+  border: 1px solid #b7dfc8;
+  background: #e6f4ec;
+  color: #156038;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.inst-pay-toggle:hover {
+  background: #d2ecdd;
+}
+
+.inst-pay-form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.inst-pay-form[hidden] {
+  display: none;
+}
+
+.inst-amount {
+  width: 130px;
+  padding: 6px 8px;
+  border: 1px solid #c5ccd4;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.inst-save {
+  border: 1px solid #1a7f4b;
+  background: #1a7f4b;
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.inst-save:hover {
+  background: #156038;
+}
+
+.inst-done {
+  color: #1a7f4b;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.inst-pay-inline {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.inst-pay-inline .inst-amount {
+  width: 110px;
+}
+
+.inst-date {
+  padding: 5px 8px;
+  border: 1px solid #c5ccd4;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.85rem;
 }
 
 .pay-select {
@@ -208,6 +377,34 @@ body {
   cursor: default;
 }
 
+.record-send-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #156038;
+  background: #e6f4ec;
+  border: 1px solid #b7dfc8;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+  align-self: center;
+}
+
+.record-send-text::before {
+  content: "⇢";
+  font-size: 0.9rem;
+}
+
+.record-send-text:hover {
+  background: #d2ecdd;
+  border-color: #8fc7a8;
+  color: #0f5c38;
+}
+
 .record-delete {
   color: #c0392b;
 }
@@ -238,6 +435,29 @@ body {
   background: #156038;
 }
 
+.sent-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-cancel {
+  background: #fff;
+  color: #c0392b;
+  border: 1px solid #c0392b;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-cancel:hover {
+  background: #fdecea;
+}
+
 .items-table {
   border: 1px solid #d5d9df;
   border-radius: 8px;
@@ -258,6 +478,18 @@ body {
 
 .items-head span + span {
   border-right: 1px solid #d5d9df;
+}
+
+.items-head.cols-3,
+.item-row-3 {
+  grid-template-columns: 2fr 1fr 1fr;
+}
+
+.items-head.cols-3 span:nth-child(2),
+.items-head.cols-3 span:nth-child(3),
+.item-row-3 input:nth-child(2),
+.item-row-3 input:nth-child(3) {
+  border-right: 1px solid #e3e6ea;
 }
 
 .item-row {
@@ -503,6 +735,12 @@ body {
 .pay-install { background: #1a3a5c; }
 .pay-install:hover { background: #24507e; }
 
+.pay-btn.active {
+  outline: 3px solid #fff;
+  outline-offset: -3px;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.25);
+}
+
 .btn-summary {
   width: 100%;
   margin-top: 16px;
@@ -586,17 +824,17 @@ body {
 .calc-grid {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .calc-card {
   background: #fff;
-  border-radius: 14px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 14px 16px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .calc-card.highlight {
@@ -609,12 +847,12 @@ body {
 }
 
 .calc-label {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   color: #555;
 }
 
 .calc-value {
-  font-size: 1.9rem;
+  font-size: 1.5rem;
   color: #1a3a5c;
   direction: ltr;
   text-align: right;
@@ -625,9 +863,37 @@ body {
 }
 
 .calc-sub {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #888;
 }
+
+.calc-card.c-blue { background: #e8f0f9; }
+.calc-card.c-blue .calc-value { color: #1a3a5c; }
+.calc-card.c-blue .calc-label { color: #2c5282; }
+
+.calc-card.c-green { background: #e6f4ec; }
+.calc-card.c-green .calc-value { color: #156038; }
+.calc-card.c-green .calc-label { color: #1e6b45; }
+
+.calc-card.c-red { background: #fdecea; }
+.calc-card.c-red .calc-value { color: #c0392b; }
+.calc-card.c-red .calc-label { color: #a02c20; }
+
+.calc-card.c-purple { background: #f3e8fd; }
+.calc-card.c-purple .calc-value { color: #7b1fa2; }
+.calc-card.c-purple .calc-label { color: #6b21a8; }
+
+.calc-card.c-teal { background: #e0f2f1; }
+.calc-card.c-teal .calc-value { color: #00796b; }
+.calc-card.c-teal .calc-label { color: #00695c; }
+
+.calc-card.c-olive { background: #d9ead3; }
+.calc-card.c-olive .calc-value { color: #2d5a1e; }
+.calc-card.c-olive .calc-label { color: #3a6b2a; }
+
+.calc-card.c-amber { background: #fff4d6; }
+.calc-card.c-amber .calc-value { color: #8a6d00; }
+.calc-card.c-amber .calc-label { color: #7a5c00; }
 
 .profit-box {
   margin-top: 16px;

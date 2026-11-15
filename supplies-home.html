@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>کڕینی کاڵا بۆ خاوەن ماڵ</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="app-header form-header">
+      <button id="backBtn" class="back-btn">&rarr; گەڕانەوە</button>
+      <h1>کڕینی کاڵا بۆ خاوەن ماڵ</h1>
+    </header>
+
+    <main class="form-body">
+      <form id="homeBuyForm" class="blank-form">
+        <div class="form-field">
+          <label for="ownerSelect">ناوی خاوەن ماڵ</label>
+          <select id="ownerSelect" name="ownerSelect" required>
+            <option value="">-- هەڵبژێرە --</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="buyDate">بەروار</label>
+          <input type="date" id="buyDate" name="buyDate" required>
+        </div>
+        <div class="form-field">
+          <label>کاڵاکان</label>
+          <div class="items-table">
+            <div class="items-head cols-3">
+              <span>ناوی کاڵا</span>
+              <span>بڕ</span>
+              <span>نرخ</span>
+            </div>
+            <div id="itemsBody"></div>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="payType">جۆری کڕین</label>
+          <select id="payType" name="payType" required>
+            <option value="">-- هەڵبژێرە --</option>
+            <option value="نەقد">نەقد</option>
+            <option value="قەرز">قەرز</option>
+          </select>
+        </div>
+        <div class="total-expense">کۆی گشتی: <strong id="totalAmount">0</strong> د.ع</div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">پاشەکەوت</button>
+        </div>
+      </form>
+
+      <button type="button" id="recordsToggleBtn" class="btn-summary">تۆماری کاڵاکان بۆ خاوەن ماڵ</button>
+    </main>
+  </div>
+
+  <script src="supplies-home.js"></script>
+  <script src="sync.js"></script>
+</body>
+</html>

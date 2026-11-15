@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تۆماری کاڵاکان</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="app-header form-header">
+      <button id="backBtn" class="back-btn">&rarr; گەڕانەوە</button>
+      <h1>تۆماری کاڵاکان</h1>
+    </header>
+
+    <main class="form-body">
+      <div class="form-field" style="margin-bottom:14px">
+        <input type="text" id="searchBox" placeholder="گەڕان..."><label>گەڕان</label>
+      </div>
+      <div class="inst-pay-box" style="flex-direction:row;justify-content:space-between;margin-bottom:14px">
+        <div class="calc-card c-blue" style="flex:1">
+          <span class="calc-label">کۆی پارەی کڕینەکان</span>
+          <strong class="calc-value"><span id="totalPurchases">0</span> د.ع</strong>
+        </div>
+        <div class="calc-card c-purple" style="flex:1">
+          <span class="calc-label">کۆی قەرزی کاڵاکان</span>
+          <strong class="calc-value"><span id="totalDebt">0</span> د.ع</strong>
+        </div>
+        <div class="calc-card c-olive" style="flex:1">
+          <span class="calc-label">کۆی پارەی کڕینەکان بە نەقد</span>
+          <strong class="calc-value"><span id="totalCash">0</span> د.ع</strong>
+        </div>
+      </div>
+      <div class="pay-btns" style="margin-bottom:14px">
+        <button type="button" class="pay-btn pay-cash" id="filterCash">کۆی تۆمارە نەقدیەکان</button>
+        <button type="button" class="pay-btn pay-debt" id="filterDebt">کۆی تۆمارە قەرزەکان</button>
+      </div>
+      <section class="records-section">
+        <h2>تۆمارەکان</h2>
+        <ul id="recordsList" class="records-list"></ul>
+        <p id="emptyMsg" class="empty-msg">هێشتا هیچ تۆمارێک نییە</p>
+      </section>
+    </main>
+  </div>
+
+  <script src="supplies-list.js"></script>
+  <script src="sync.js"></script>
+</body>
+</html>

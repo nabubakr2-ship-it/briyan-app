@@ -109,13 +109,17 @@ function renderRecords() {
           r.sentToContractor ? ' <span class="sent-badge">نێردرا بۆ بەڵێندان</span>' : ""
         }</span>
       </div>
-      <span class="record-mobile">${escapeHtml(r.mobile)}</span>
+      <div class="record-side">
+        <span class="record-mobile">${escapeHtml(r.mobile)}</span>
+        <button class="record-del" title="ڕەشکردنەوە">&times;</button>
+      </div>
       <div class="record-actions">
         <button class="record-edit" title="گۆڕانکاری">✎</button>
-        <button class="record-send" title="ناردن بۆ بەڵێندان" ${
-          r.sentToContractor ? "disabled" : ""
-        }>⇢</button>
-        <button class="record-delete" title="ڕەشکردنەوە">&times;</button>
+        ${
+          r.sentToContractor
+            ? ""
+            : `<span class="record-send-text" title="ناردن بۆ بەڵێندان">ناردن بۆ بەڵێن</span>`
+        }
       </div>
     `;
 
@@ -136,17 +140,20 @@ function renderRecords() {
       form.ownerName.focus();
     });
 
-    li.querySelector(".record-send").addEventListener("click", () => {
-      const all = loadRecords();
-      const target = all.find((x) => x.id === r.id);
-      if (target) {
-        target.sentToContractor = true;
-        saveRecords(all);
-        renderRecords();
-      }
-    });
+    const sendEl = li.querySelector(".record-send-text");
+    if (sendEl) {
+      sendEl.addEventListener("click", () => {
+        const all = loadRecords();
+        const target = all.find((x) => x.id === r.id);
+        if (target) {
+          target.sentToContractor = true;
+          saveRecords(all);
+          renderRecords();
+        }
+      });
+    }
 
-    li.querySelector(".record-delete").addEventListener("click", () => {
+    li.querySelector(".record-del").addEventListener("click", () => {
       saveRecords(loadRecords().filter((x) => x.id !== r.id));
       if (editingId === r.id) setEditMode(null);
       renderRecords();

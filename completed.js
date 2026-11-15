@@ -15,7 +15,7 @@ function loadRecords() {
 
 function stripRecord(r) {
   const o = { ...r };
-  ["id", "sentToContractor", "promised", "viewingId"].forEach((k) => delete o[k]);
+  ["id", "sentToContractor", "promised", "viewingId", "sentToWork"].forEach((k) => delete o[k]);
   delete o.history;
   return o;
 }
@@ -68,20 +68,25 @@ function updatePriceFields() {
   }
 
   const t = form.agreementType.value;
-  const single = isMohalaja && isSingle(t);
+  const gotra = isMohalaja && t === "گۆترە";
+  const single = isMohalaja && isSingle(t) && !gotra;
   const double = isMohalaja && isDouble(t);
+  const showSingle = single || gotra;
 
-  document.getElementById("priceFields").hidden = !(single || double);
-  document.getElementById("singleFields").hidden = !single;
+  document.getElementById("priceFields").hidden = !(showSingle || double);
+  document.getElementById("singleFields").hidden = !showSingle;
   document.getElementById("doubleFields").hidden = !double;
 
-  form.price.required = single;
+  form.price.required = showSingle;
   form.meter.required = single;
+  const meterLabel = document.querySelector('label[for="meter"]');
+  if (meterLabel) meterLabel.hidden = gotra;
+  form.meter.hidden = gotra;
   ["priceWool", "priceMarble", "meterWool", "meterMarble"].forEach((id) => {
     form[id].required = double;
   });
 
-  if (!single) {
+  if (!showSingle) {
     form.price.value = "";
     form.meter.value = "";
   }
@@ -98,7 +103,10 @@ function updatePriceFields() {
 
 function recalcPrice() {
   const n = (id) => parseFloat(document.getElementById(id).value) || 0;
-  document.getElementById("total").value = formatNum(n("price") * n("meter"));
+  const gotra = document.getElementById("agreementType").value === "گۆترە";
+  document.getElementById("total").value = formatNum(
+    gotra ? n("price") : n("price") * n("meter")
+  );
   const tw = n("priceWool") * n("meterWool");
   const tm = n("priceMarble") * n("meterMarble");
   document.getElementById("totalWool").value = formatNum(tw);
@@ -298,7 +306,7 @@ function renderRecords() {
   }
   emptyMsg.style.display = "none";
 
-  records.filter((r) => !r.archived).slice().reverse().forEach((r) => {
+  records.filter((r) => !r.archived && !r.paymentType).slice().reverse().forEach((r) => {
     const li = document.createElement("li");
     li.className = "record-item";
     li.innerHTML = `
@@ -306,7 +314,10 @@ function renderRecords() {
         <strong>${escapeHtml(r.ownerName)}</strong>
         <span class="record-meta">${escapeHtml(r.jobType)} — ${formatDate(r.completeDate)}${escapeHtml(agreementInfo(r))}</span>
       </div>
-      <span class="record-mobile">${escapeHtml(r.mobile)}</span>
+      <div class="record-side">
+        <span class="record-mobile">${escapeHtml(r.mobile)}</span>
+        <button class="record-del" title="ڕەشکردنەوە">&times;</button>
+      </div>
       <select class="pay-select" title="جۆری پارەدان">
         <option value="">-- جۆر --</option>
         <option value="نەقد" ${r.paymentType === "نەقد" ? "selected" : ""}>نەقد</option>
@@ -316,7 +327,6 @@ function renderRecords() {
       <div class="record-actions">
         <button class="btn-info">کۆی زانیاریەکان</button>
         <button class="record-edit" title="گۆڕانکاری">✎</button>
-        <button class="record-delete" title="ڕەشکردنەوە">&times;</button>
       </div>
     `;
     li.querySelector(".pay-select").addEventListener("change", (e) => {
@@ -324,7 +334,15 @@ function renderRecords() {
       const target = all.find((x) => x.id === r.id);
       if (target) {
         target.paymentType = e.target.value;
+        if (e.target.value === "قیست" && !target.installmentCount) {
+          const amt = prompt("بڕی هەر قیستێک (د.ع):", target.installmentAmount || "");
+          const cnt = prompt("ژمارەی قیستەکان:", target.installmentCount || "");
+          target.installmentAmount = parseFloat(amt) || 0;
+          target.installmentCount = parseInt(cnt, 10) || 0;
+          target.installmentsPaid = target.installmentsPaid || [];
+        }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+        renderRecords();
       }
     });
     li.querySelector(".btn-info").addEventListener("click", () => openInfo(r));
@@ -339,7 +357,7 @@ function renderRecords() {
       formEl.scrollIntoView({ behavior: "smooth", block: "start" });
       formEl.ownerName.focus();
     });
-    li.querySelector(".record-delete").addEventListener("click", () => {
+    li.querySelector(".record-del").addEventListener("click", () => {
       localStorage.setItem(
         STORAGE_KEY,
         JSON.stringify(loadRecords().filter((x) => x.id !== r.id))

@@ -113,12 +113,12 @@ function renderRecords() {
         <strong>${escapeHtml(r.ownerName || "—")}</strong>
         <span class="record-meta">${escapeHtml(r.workStatus || "")}${r.dayType ? " — " + escapeHtml(r.dayType) : ""} — ${formatDate(r.buyDate)}${itemNames ? " — " + escapeHtml(itemNames) : ""}</span>
       </div>
-      <span class="record-mobile">${formatNum(total)}</span>
-      <div class="record-actions">
-        <button class="record-delete" title="ڕەشکردنەوە">&times;</button>
+      <div class="record-side">
+        <span class="record-mobile">${formatNum(total)}</span>
+        <button class="record-del" title="ڕەشکردنەوە">&times;</button>
       </div>
     `;
-    li.querySelector(".record-delete").addEventListener("click", () => {
+    li.querySelector(".record-del").addEventListener("click", () => {
       localStorage.setItem(
         STORAGE_KEY,
         JSON.stringify(loadJSON(STORAGE_KEY).filter((x) => x.id !== r.id))

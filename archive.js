@@ -111,12 +111,20 @@ function render() {
         <strong>${escapeHtml(r.ownerName)}</strong>
         <span class="record-meta">${escapeHtml(r.jobType)} — ${formatDate(r.completeDate)}${escapeHtml(agreementInfo(r))}</span>
       </div>
-      <span class="record-mobile">${formatNum(r.grandTotal || r.total)}</span>
+      <div class="record-side">
+        <span class="record-mobile">${formatNum(r.grandTotal || r.total)}</span>
+        <button class="record-del" title="ڕەشکردنەوە">&times;</button>
+      </div>
       <div class="record-actions">
         <button class="btn-info">زانیاری خاوەن ماڵ</button>
         <button class="btn-back">گەڕانەوە بۆ فۆڕمی پێشوو</button>
       </div>
     `;
+    li.querySelector(".record-del").addEventListener("click", () => {
+      const all = loadRecords();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(all.filter((x) => x.id !== r.id)));
+      render();
+    });
     li.querySelector(".btn-info").addEventListener("click", () => openInfo(r));
     li.querySelector(".btn-back").addEventListener("click", () => {
       const all = loadRecords();
