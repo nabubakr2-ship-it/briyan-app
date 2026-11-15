@@ -86,7 +86,10 @@ function agreementText(r) {
   return `${r.agreementType}${r.price ? ` (${r.price})` : ""}`;
 }
 
+let ownerPayFilter = "";
+
 function renderOwnerInfo(mobile, payType = "") {
+  ownerPayFilter = payType;
   const body = document.getElementById("ownerInfoBody");
   if (!mobile) {
     body.innerHTML = "";
@@ -97,12 +100,12 @@ function renderOwnerInfo(mobile, payType = "") {
   const promises = loadJSON("promises").filter((r) => r.mobile === mobile);
   const started = loadJSON("startedWorks").filter((r) => r.mobile === mobile);
   const completed = loadJSON(COMPLETED_KEY).filter(
-    (r) => r.mobile === mobile && (!payType || r.paymentType === payType)
+    (r) => r.mobile === mobile && !r.archived && (!payType || r.paymentType === payType)
   );
   const ownerNameRef =
     (viewings[0] || promises[0] || started[0] || completed[0] || {}).ownerName || "";
   const entries = loadJSON(WORKERS_KEY).filter(
-    (r) => r.ownerMobile === mobile || (ownerNameRef !== "" && r.ownerName === ownerNameRef)
+    (r) => !r.archived && (r.ownerMobile === mobile || (ownerNameRef !== "" && r.ownerName === ownerNameRef))
   );
 
   const myExpenses = loadJSON("myExpenses").filter((r) => r.ownerMobile === mobile);
@@ -191,10 +194,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const backBtn = document.getElementById("backBtn");
   if (backBtn) backBtn.addEventListener("click", () => (window.location.href = "index.html"));
 
-  const completed = loadJSON(COMPLETED_KEY);
-  const ownersTotal = completed.reduce((s, r) => s + iqdAmt(r), 0);
+  let completed = [];
+  function refreshTotals() {
+    completed = loadJSON(COMPLETED_KEY);
+    const ownersTotal = completed.reduce((s, r) => s + iqdAmt(r), 0);
 
-  const entries = loadJSON(WORKERS_KEY);
+  const entries = loadJSON(WORKERS_KEY).filter((r) => !r.archived);
   const workersTotal = entries.reduce((s, r) => {
     const exp = (r.items || []).reduce((x, it) => x + num(it.amount), 0);
     return s + num(r.dailyRate) + exp;
@@ -205,20 +210,22 @@ document.addEventListener("DOMContentLoaded", () => {
     0
   );
 
-  document.getElementById("ownersTotal").textContent = formatNum(ownersTotal);
-  document.getElementById("workersTotal").textContent = formatNum(workersTotal);
-  document.getElementById("expensesTotal").textContent = formatNum(myExpensesTotal);
-  document.getElementById("remaining").textContent = formatNum(
-    ownersTotal - workersTotal - myExpensesTotal
-  );
+  const setTxt = (id, v) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = v;
+  };
+  setTxt("ownersTotal", formatNum(ownersTotal));
+  setTxt("workersTotal", formatNum(workersTotal));
+  setTxt("expensesTotal", formatNum(myExpensesTotal));
+  setTxt("remaining", formatNum(ownersTotal - workersTotal - myExpensesTotal));
 
   const debtRecords = completed.filter(
     (r) => (r.paymentType === "قیست" || r.paymentType === "قەرز") && !r.archived
   );
-  document.getElementById("debtTotal").textContent = formatNum(
+  setTxt("debtTotal", formatNum(
     debtRecords.reduce((s, r) => s + iqdAmt(r), 0)
-  );
-  document.getElementById("debtPaidTotal").textContent = formatNum(
+  ));
+  setTxt("debtPaidTotal", formatNum(
     debtRecords.reduce(
       (s, r) =>
         s +
@@ -226,7 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
         (r.debtPayments || []).reduce((x, p) => x + num(p.amount), 0),
       0
     )
-  );
+  ));
 
   const cashRecords = completed.filter((r) => r.paymentType === "نەقد" && !r.archived);
   const cashPaid = cashRecords.reduce(
@@ -234,10 +241,12 @@ document.addEventListener("DOMContentLoaded", () => {
     0
   );
   const cashTotal = cashRecords.reduce((s, r) => s + iqdAmt(r), 0);
-  document.getElementById("cashPaidTotal").textContent = formatNum(cashPaid);
-  document.getElementById("cashLeftTotal").textContent = formatNum(
+  setTxt("cashPaidTotal", formatNum(cashPaid));
+  setTxt("cashLeftTotal", formatNum(
     Math.max(0, cashTotal - cashPaid)
-  );
+  ));
+  }
+  refreshTotals();
 
   const modal = document.getElementById("ownerModal");
   const select = document.getElementById("ownerInfoSelect");
@@ -248,6 +257,71 @@ document.addEventListener("DOMContentLoaded", () => {
     select.appendChild(opt);
   });
   select.addEventListener("change", () => renderOwnerInfo(select.value));
+
+  const workTotalModal = document.getElementById("workTotalModal");
+  document.getElementById("workTotalBtn").addEventListener("click", () => {
+    refreshTotals();
+    workTotalModal.hidden = false;
+  });
+  document.getElementById("workTotalClose").addEventListener("click", () => {
+    workTotalModal.hidden = true;
+  });
+  workTotalModal.addEventListener("click", (e) => {
+    if (e.target === workTotalModal) workTotalModal.hidden = true;
+  });
+
+  const profitModal = document.getElementById("profitModal");
+  document.getElementById("profitBtn").addEventListener("click", () => {
+    const body = document.getElementById("profitBody");
+    const byOwner = new Map();
+    const get = (mobile, name) => {
+      const key = mobile || name || "—";
+      if (!byOwner.has(key)) byOwner.set(key, { name: name || "—", mobile, owner: 0, expense: 0, worker: 0 });
+      return byOwner.get(key);
+    };
+    completed.forEach((r) => {
+      const o = get(r.mobile, r.ownerName);
+      o.owner += iqdAmt(r);
+    });
+    loadJSON("startedWorks").forEach((r) => {
+      const o = get(r.mobile, r.ownerName);
+      o.expense += itemsSum(r);
+    });
+    loadJSON("myExpenses").forEach((r) => {
+      const o = get(r.ownerMobile, "");
+      o.expense += itemsSum(r);
+    });
+    loadJSON(WORKERS_KEY).filter((r) => !r.archived).forEach((e) => {
+      const o = get(e.ownerMobile, e.ownerName);
+      o.worker += num(e.dailyRate) + itemsSum(e);
+    });
+
+    let html = `<table class="summary-table"><thead><tr>
+      <th>خاوەن ماڵ</th><th>خاوەن</th><th>مەسروفات</th><th>کرێکار</th><th>قازانج</th>
+    </tr></thead><tbody>`;
+    let tOwner = 0, tExpense = 0, tWorker = 0;
+    byOwner.forEach((o) => {
+      const profit = o.owner - o.expense - o.worker;
+      tOwner += o.owner; tExpense += o.expense; tWorker += o.worker;
+      html += `<tr>
+        <td>${escapeHtml(o.name)}</td>
+        <td>${formatNum(o.owner)} د.ع</td>
+        <td>${formatNum(o.expense)} د.ع</td>
+        <td>${formatNum(o.worker)} د.ع</td>
+        <td>${formatNum(profit)} د.ع</td>
+      </tr>`;
+    });
+    html += `</tbody></table>
+      <div class="info-row total-row"><span>کۆی گشتی قازانج</span><span>${formatNum(tOwner - tExpense - tWorker)} د.ع</span></div>`;
+    body.innerHTML = byOwner.size ? html : "<p class='empty-msg'>هیچ زانیارییەک نییە</p>";
+    profitModal.hidden = false;
+  });
+  document.getElementById("profitClose").addEventListener("click", () => {
+    profitModal.hidden = true;
+  });
+  profitModal.addEventListener("click", (e) => {
+    if (e.target === profitModal) profitModal.hidden = true;
+  });
 
   document.getElementById("ownerInfoBtn").addEventListener("click", () => {
     select.value = "";
@@ -314,7 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <td>${instCnt || "—"}</td>
               <td>${paidAmt ? `${formatNum(paidAmt)} د.ع (${paidCnt}/${instCnt || "؟"})` : "—"}</td>
               <td>${formatNum(leftAmt)} د.ع</td>
-              <td>${leftAmt > 0 ? `<button type="button" class="inst-pay" data-id="${r.id}">وەرگیرا</button>` : ""}</td>
+              <td>${leftAmt > 0 ? `<button type="button" class="inst-pay" data-id="${r.id}">وەرگیرا</button><button type="button" class="inst-pay-all" data-id="${r.id}">کۆی پارە</button>` : ""}</td>
             </tr>`;
           });
           html += "</tbody></table>";
@@ -379,7 +453,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <td>${formatNum(amt)} د.ع</td>
               <td>${paidAmt ? `${formatNum(paidAmt)} د.ع` : "—"}</td>
               <td>${formatNum(leftAmt)} د.ع</td>
-              <td>${leftAmt > 0 ? `<button type="button" class="inst-pay" data-id="${r.id}">وەرگرتن</button>` : ""}</td>
+              <td>${leftAmt > 0 ? `<button type="button" class="inst-pay" data-id="${r.id}">وەرگرتن</button><button type="button" class="inst-pay-all" data-id="${r.id}">کۆی پارە</button>` : ""}</td>
             </tr>`;
           });
           html += "</tbody></table>";
@@ -444,7 +518,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <td>${formatNum(amt)} د.ع</td>
               <td>${paidAmt ? `${formatNum(paidAmt)} د.ع` : "—"}</td>
               <td>${formatNum(leftAmt)} د.ع</td>
-              <td>${leftAmt > 0 ? `<button type="button" class="inst-pay" data-id="${r.id}">دانەوە</button>` : ""}</td>
+              <td>${leftAmt > 0 ? `<button type="button" class="inst-pay" data-id="${r.id}">دانەوە</button><button type="button" class="inst-pay-all" data-id="${r.id}">کۆی پارە</button>` : ""}</td>
             </tr>`;
           });
           html += "</tbody></table>";
@@ -511,6 +585,27 @@ document.addEventListener("DOMContentLoaded", () => {
       payModal.hidden = false;
     });
   });
+  payModalBody.addEventListener("click", (e) => {
+    const btn = e.target.closest(".inst-pay-all");
+    if (!btn) return;
+    const all = loadJSON(COMPLETED_KEY);
+    const rec = all.find((x) => x.id === Number(btn.dataset.id));
+    if (!rec) return;
+    const payKey =
+      currentPay === "قیست" ? "installmentsPaid" :
+      currentPay === "نەقد" ? "cashPayments" : "debtPayments";
+    const amt = iqdAmt(rec);
+    const paidAmt = (rec[payKey] || []).reduce((s, p) => s + num(p.amount), 0);
+    const leftAmt = Math.max(0, amt - paidAmt);
+    if (leftAmt <= 0) return;
+    rec[payKey] = rec[payKey] || [];
+    rec[payKey].push({
+      date: new Date().toISOString().slice(0, 10),
+      amount: leftAmt,
+    });
+    localStorage.setItem(COMPLETED_KEY, JSON.stringify(all));
+    document.querySelector(`.pay-btn[data-pay="${currentPay}"]`).click();
+  });
   document.getElementById("payModalClose").addEventListener("click", () => {
     payModal.hidden = true;
   });
@@ -518,12 +613,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target === payModal) payModal.hidden = true;
   });
 
-  document.getElementById("sendArchiveBtn").addEventListener("click", () => {
-    if (!currentPay) return;
+  document.getElementById("ownerArchiveBtn").addEventListener("click", () => {
+    const mobile = document.getElementById("ownerInfoSelect").value;
+    if (!mobile) {
+      alert("سەرەتا ناوی خاوەن ماڵ هەڵبژێرە");
+      return;
+    }
     const all = loadJSON(COMPLETED_KEY);
     let count = 0;
     all.forEach((r) => {
-      if (r.paymentType === currentPay && !r.archived) {
+      if (
+        r.mobile === mobile &&
+        !r.archived &&
+        (!ownerPayFilter || r.paymentType === ownerPayFilter)
+      ) {
         r.archived = true;
         count++;
       }
@@ -534,7 +637,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     localStorage.setItem(COMPLETED_KEY, JSON.stringify(all));
     alert(`${count} تۆمار نێردرا بۆ ئەرشیف`);
-    document.querySelector(`.pay-btn[data-pay="${currentPay}"]`).click();
+    renderOwnerInfo(mobile, ownerPayFilter);
+    refreshTotals();
   });
 
   document.getElementById("payOwnerInfoBtn").addEventListener("click", () => {

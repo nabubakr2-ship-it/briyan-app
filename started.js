@@ -172,6 +172,60 @@ function loadLastAgreement(form) {
   } catch {}
 }
 
+function infoRow(k, v) {
+  return v !== "" && v !== undefined && v !== null
+    ? `<div class="info-row"><span>${k}</span><span>${escapeHtml(String(v))}</span></div>`
+    : "";
+}
+
+function openInfo(r) {
+  let html = "";
+  html += `<h3 class="info-section">زانیارییەکان</h3>`;
+  html += infoRow("ناوی خاوەن ماڵ", r.ownerName);
+  html += infoRow("ژمارە مۆبایل", r.mobile);
+  html += infoRow("جۆری ئیش", r.jobType);
+  html += infoRow("بەرواری دەستپێکردن", formatDate(r.startDate));
+  html += infoRow("ڕێک کەوتن", agreementInfo(r).replace(/^ — /, ""));
+
+  const items = r.items || [];
+  if (items.length) {
+    const exp = items.reduce((s, it) => s + (parseFloat(it.amount) || 0), 0);
+    html += `<h3 class="info-section">مەسروفات — کۆی: ${formatNum(exp)}</h3>`;
+    items.forEach((it) => {
+      html += `<div class="info-row"><span>${escapeHtml(it.type || "—")}</span><span>${escapeHtml(String(it.amount || ""))}</span></div>`;
+    });
+  }
+
+  const entries = loadRecordsFrom("workerEntries").filter(
+    (e) => !e.archived && (e.ownerMobile === r.mobile || (r.ownerName && e.ownerName === r.ownerName))
+  );
+  if (entries.length) {
+    html += `<h3 class="info-section">زانیاری کرێکار</h3><table class="summary-table"><thead><tr>
+      <th>کرێکار</th><th>بەروار</th><th>دۆخ</th><th>ڕۆژانە</th><th>مەسروفات</th><th>کۆی پارە</th>
+    </tr></thead><tbody>`;
+    entries.slice().reverse().forEach((e) => {
+      const exp = (e.items || []).reduce((s, it) => s + (parseFloat(it.amount) || 0), 0);
+      const itemNames = (e.items || [])
+        .map((it) => [it.type, it.amount].filter(Boolean).join(": "))
+        .filter(Boolean)
+        .join("، ");
+      const rate = parseFloat(e.dailyRate) || 0;
+      html += `<tr>
+        <td>${escapeHtml(e.workerName || "—")}</td>
+        <td>${formatDate(e.entryDate)}</td>
+        <td>${escapeHtml(e.dailyStatus || "—")}</td>
+        <td>${formatNum(rate)}</td>
+        <td>${escapeHtml(itemNames || "—")}</td>
+        <td>${formatNum(rate + exp)}</td>
+      </tr>`;
+    });
+    html += "</tbody></table>";
+  }
+
+  document.getElementById("infoBody").innerHTML = html || "<p class='empty-msg'>زانیاری نییە</p>";
+  document.getElementById("infoModal").hidden = false;
+}
+
 function setEditMode(id) {
   editingId = id;
   const btn = document.querySelector('#workForm button[type="submit"]');
@@ -208,10 +262,12 @@ function renderRecords() {
         <button class="record-del" title="ڕەشکردنەوە">&times;</button>
       </div>
       <div class="record-actions">
+        <button class="btn-info" data-id="${r.id}">لیستی زانیاری</button>
         <button class="btn-promise btn-send-done">ناردن بۆ تەواوکردن</button>
         <button class="record-edit" title="گۆڕانکاری">✎</button>
       </div>
     `;
+    li.querySelector(".btn-info").addEventListener("click", () => openInfo(r));
     li.querySelector(".btn-send-done").addEventListener("click", () => {
       localStorage.setItem(
         "pendingStarted",
@@ -333,6 +389,14 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   form.addEventListener("reset", () => setEditMode(null));
+
+  const infoModal = document.getElementById("infoModal");
+  document.getElementById("infoClose").addEventListener("click", () => {
+    infoModal.hidden = true;
+  });
+  infoModal.addEventListener("click", (e) => {
+    if (e.target === infoModal) infoModal.hidden = true;
+  });
 
   renderRecords();
 });

@@ -17,30 +17,16 @@
     <main class="form-body">
       <form id="expenseForm" class="blank-form">
         <div class="form-field">
-          <label for="workStatus">دۆخی ئیش</label>
-          <select id="workStatus" name="workStatus" required>
-            <option value="">-- هەڵبژێرە --</option>
-            <option value="لە ئیش بووم">لە ئیش بووم</option>
-            <option value="لە ئیش نەبووم">لە ئیش نەبووم</option>
-          </select>
-        </div>
-        <div class="form-field" id="dayTypeField" hidden>
-          <label for="dayType">جۆری ڕۆژ</label>
-          <select id="dayType" name="dayType">
-            <option value="">-- هەڵبژێرە --</option>
-            <option value="ڕۆژی تەواو">ڕۆژی تەواو</option>
-            <option value="نیو ڕۆژ">نیو ڕۆژ</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label for="ownerSelect">ناوی خاوەن ماڵ هەڵبژێرە</label>
-          <select id="ownerSelect" name="ownerSelect" required>
-            <option value="">-- هەڵبژێرە --</option>
-          </select>
-        </div>
-        <div class="form-field">
           <label for="buyDate">بەرواری کڕین</label>
           <input type="date" id="buyDate" name="buyDate" required>
+        </div>
+        <div class="form-field">
+          <label for="payType">جۆری پارەدان</label>
+          <select id="payType" name="payType" required>
+            <option value="">-- هەڵبژێرە --</option>
+            <option value="نەقد">نەقد</option>
+            <option value="قەرز">قەرز</option>
+          </select>
         </div>
         <div class="form-field">
           <label>جۆری مەسروف</label>
@@ -65,21 +51,15 @@
         <div id="grandTotalBox" class="total-expense" hidden>کۆی هەموو خەرجیەکان: <strong id="grandTotalAmount">0</strong></div>
       </section>
 
-      <button type="button" id="summaryBtn" class="btn-summary">کۆی مەسرەف</button>
+      <button type="button" id="selfSummaryBtn" class="btn-summary">کۆی مەسرف بۆ خۆم</button>
     </main>
   </div>
 
   <div id="summaryModal" class="modal" hidden>
     <div class="modal-card">
       <div class="modal-head">
-        <h2>کۆی مەسرەف</h2>
+        <h2>کۆی مەسرف بۆ خۆم</h2>
         <button id="summaryClose" class="back-btn">داخستن</button>
-      </div>
-      <div class="form-field">
-        <label for="summaryOwner">ناوی خاوەن ماڵ</label>
-        <select id="summaryOwner">
-          <option value="">-- هەڵبژێرە --</option>
-        </select>
       </div>
       <div id="summaryBody"></div>
     </div>

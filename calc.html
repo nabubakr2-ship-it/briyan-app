@@ -21,6 +21,18 @@
         <button type="button" class="pay-btn pay-install" data-pay="قیست">قیست</button>
       </div>
 
+      <button type="button" id="workTotalBtn" class="btn-summary">کۆی پارەی ئیش</button>
+
+      <button type="button" id="ownerInfoBtn" class="btn-summary">زانیاری خاوەن ماڵ</button>
+    </main>
+  </div>
+
+  <div id="workTotalModal" class="modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>کۆی پارەی ئیش</h2>
+        <button id="workTotalClose" class="back-btn">داخستن</button>
+      </div>
       <div class="calc-grid">
         <div class="calc-card c-blue">
           <span class="calc-label">کۆی پارەی خاوەن ماڵەکان</span>
@@ -63,9 +75,18 @@
           <span class="calc-sub">خاوەن ماڵ − کرێکار − خەرجی</span>
         </div>
       </div>
+      <button type="button" id="profitBtn" class="btn-summary" style="margin-top:14px">کۆی قازانج</button>
+    </div>
+  </div>
 
-      <button type="button" id="ownerInfoBtn" class="btn-summary">زانیاری خاوەن ماڵ</button>
-    </main>
+  <div id="profitModal" class="modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>کۆی قازانج</h2>
+        <button id="profitClose" class="back-btn">داخستن</button>
+      </div>
+      <div id="profitBody"></div>
+    </div>
   </div>
 
   <div id="payModal" class="modal" hidden>
@@ -82,7 +103,6 @@
       </div>
       <div id="payModalBody"></div>
       <div class="info-row total-row"><span>کۆی پارە</span><span id="payTotal"></span></div>
-      <button type="button" id="sendArchiveBtn" class="btn-primary" style="margin-top:14px">ناردن بۆ ئەرشیف</button>
     </div>
   </div>
 
@@ -99,6 +119,7 @@
         </select>
       </div>
       <div id="ownerInfoBody"></div>
+      <button type="button" id="ownerArchiveBtn" class="btn-primary" style="margin-top:14px">ناردن بۆ ئەرشیف</button>
     </div>
   </div>
 

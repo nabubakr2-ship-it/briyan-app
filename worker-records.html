@@ -46,11 +46,38 @@
         <div class="info-row total-row"><span>کۆی گشتی پارەی هەموو کرێکارەکان</span><span id="grandTotal"></span></div>
       </section>
       <section class="records-section">
+        <h2>پارەدانی کرێکاران</h2>
+        <div id="paymentsBody"></div>
+        <div class="info-row total-row"><span>کۆی پارە</span><span id="payGrand"></span></div>
+      </section>
+      <section class="records-section">
         <h2>تۆمارەکان</h2>
         <ul id="recordsList" class="records-list"></ul>
         <p id="emptyMsg" class="empty-msg">هێشتا هیچ تۆمارێک نییە</p>
       </section>
     </main>
+  </div>
+
+  <div id="infoModal" class="modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>کۆی زانیاریەکان</h2>
+        <button id="infoClose" class="back-btn">داخستن</button>
+      </div>
+      <div id="infoBody"></div>
+      <div id="infoActions">
+        <button type="button" id="infoPayBtn" class="btn-summary" style="margin-top:14px">پارەدان</button>
+        <button type="button" id="infoPayAllBtn" class="btn-summary" style="margin-top:14px">پێدانی کۆی پارە</button>
+        <button type="button" id="infoArchiveBtn" class="btn-primary" style="margin-top:14px">ناردن بۆ ئەرشیف</button>
+      </div>
+      <div id="infoPayBox" hidden style="margin-top:14px">
+        <div class="inst-pay-inline" style="flex-wrap:wrap">
+          <input type="number" id="infoPayAmount" min="0" step="any" placeholder="بڕی پارە (د.ع)">
+          <input type="date" id="infoPayDate" value="">
+          <button type="button" id="infoPaySave" class="inst-save">تۆمار</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="worker-records.js"></script>

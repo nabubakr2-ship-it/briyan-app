@@ -1,4 +1,5 @@
 const STORAGE_KEY = "workerEntries";
+const PAYMENTS_KEY = "workerPayments";
 const KEYS = ["startedWorks"];
 
 const RATES = {
@@ -80,8 +81,19 @@ function escapeHtml(s) {
   }[c]));
 }
 
+function recordLeft(r) {
+  const exp = (r.items || []).reduce((s, it) => s + (parseFloat(it.amount) || 0), 0);
+  const total = (parseFloat(r.dailyRate) || 0) + exp;
+  const paid = loadJSON(PAYMENTS_KEY)
+    .filter((p) => p.recordId === r.id)
+    .reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
+  return total - paid;
+}
+
 function renderRecords(workerId) {
-  const records = loadJSON(STORAGE_KEY).filter((r) => r.workerId === workerId);
+  const records = loadJSON(STORAGE_KEY).filter(
+    (r) => r.workerId === workerId && !r.archived && recordLeft(r) > 0
+  );
   const list = document.getElementById("recordsList");
   const emptyMsg = document.getElementById("emptyMsg");
   list.innerHTML = "";
@@ -131,12 +143,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const modal = document.getElementById("summaryModal");
   document.getElementById("summaryBtn").addEventListener("click", () => {
-    const mine = loadJSON(STORAGE_KEY).filter((r) => r.workerId === worker.id);
+    const mine = loadJSON(STORAGE_KEY).filter(
+      (r) => r.workerId === worker.id && !r.archived && recordLeft(r) > 0
+    );
     const rate = mine.reduce((s, r) => s + (parseFloat(r.dailyRate) || 0), 0);
     const expense = mine.reduce(
       (s, r) => s + (r.items || []).reduce((x, it) => x + (parseFloat(it.amount) || 0), 0),
       0
     );
+    const grand = mine.reduce((s, r) => s + recordLeft(r), 0);
 
     let tableHtml = "";
     if (mine.length) {
@@ -158,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <td>${escapeHtml(r.dailyStatus || "—")}</td>
           <td>${escapeHtml(r.jobType || "—")}</td>
           <td>${escapeHtml(itemNames || "—")}</td>
-          <td>${formatNum(rRate + exp)}</td>
+          <td>${formatNum(recordLeft(r))}</td>
         </tr>`;
       });
       tableHtml += "</tbody></table>";
@@ -167,7 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("sumRate").textContent = formatNum(rate);
     document.getElementById("sumExpense").textContent = formatNum(expense);
-    document.getElementById("sumGrand").textContent = formatNum(rate + expense);
+    document.getElementById("sumGrand").textContent = formatNum(grand);
     modal.hidden = false;
   });
   document.getElementById("summaryClose").addEventListener("click", () => {

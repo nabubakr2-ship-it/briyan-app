@@ -33,7 +33,7 @@ function escapeHtml(s) {
 }
 
 function renderRecords() {
-  const records = loadJSON(STORAGE_KEY);
+  const records = loadJSON(STORAGE_KEY).filter((r) => !r.archived);
   const list = document.getElementById("recordsList");
   const emptyMsg = document.getElementById("emptyMsg");
   list.innerHTML = "";
