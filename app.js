@@ -1,4 +1,30 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("reset") === "1") {
+    const SYNC_KEYS = [
+      "viewings",
+      "promises",
+      "startedWorks",
+      "completedWorks",
+      "workerEntries",
+      "workerAccounts",
+      "myExpenses",
+    ];
+    (async () => {
+      localStorage.clear();
+      sessionStorage.clear();
+      SYNC_KEYS.forEach((k) => localStorage.setItem(k, "[]"));
+      try {
+        if (window.ensureRemote) {
+          await ensureRemote();
+          if (window.flushDirty) await flushDirty();
+        }
+      } catch {}
+      window.location.href = "index.html";
+    })();
+    return;
+  }
+
   const workerLoginLink = document.getElementById("workerLoginLink");
   if (workerLoginLink) {
     workerLoginLink.addEventListener("click", () => {
