@@ -81,6 +81,18 @@ function escapeHtml(s) {
   }[c]));
 }
 
+let capturedLoc = null;
+
+function locLinkHtml(r) {
+  if (r.lat != null && r.lng != null) {
+    return `<a class="loc-link" href="https://www.google.com/maps?q=${r.lat},${r.lng}" target="_blank" rel="noopener">🗺 گۆگڵ ماپ</a>`;
+  }
+  if (r.address) {
+    return `<a class="loc-link" href="https://www.google.com/maps?q=${encodeURIComponent(r.address)}" target="_blank" rel="noopener">🗺 گۆگڵ ماپ</a>`;
+  }
+  return "";
+}
+
 function recordLeft(r) {
   const exp = (r.items || []).reduce((s, it) => s + (parseFloat(it.amount) || 0), 0);
   const total = (parseFloat(r.dailyRate) || 0) + exp;
@@ -110,10 +122,11 @@ function renderRecords(workerId) {
     li.innerHTML = `
       <div class="record-main">
         <strong>${escapeHtml(r.ownerName || "—")}</strong>
-        <span class="record-meta">${escapeHtml(r.dailyStatus)} — ${escapeHtml(r.jobType)}</span>
+        <span class="record-meta">${escapeHtml(r.dailyStatus)} — ${escapeHtml(r.jobType)}${r.address ? " — " + escapeHtml(r.address) : ""}</span>
       </div>
       <div class="record-side">
         <span class="record-mobile">${escapeHtml(formatDate(r.entryDate))}</span>
+        ${locLinkHtml(r)}
         <button class="record-del" title="ڕەشکردنەوە">&times;</button>
       </div>
     `;
@@ -215,6 +228,29 @@ document.addEventListener("DOMContentLoaded", () => {
   addItemRow();
   document.getElementById("itemsBody").addEventListener("input", updateTotal);
 
+  const locBtn = document.getElementById("locBtn");
+  const locStatus = document.getElementById("locStatus");
+  locBtn.addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      alert("ئەم وێبگەڕە لۆکەیشن پشتگیری ناکات");
+      return;
+    }
+    locBtn.disabled = true;
+    locStatus.textContent = "چاوەڕوان بە…";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        capturedLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        locStatus.textContent = "لۆکەیشن وەرگیرا ✓";
+        locBtn.disabled = false;
+      },
+      () => {
+        locStatus.textContent = "نەتوانرا لۆکەیشن بهێندرێت";
+        locBtn.disabled = false;
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
+    );
+  });
+
   statusSelect.addEventListener("change", () => {
     const s = statusSelect.value;
     if (s === "ڕۆژی تەواو" || s === "نیو ڕۆژ") {
@@ -254,9 +290,13 @@ document.addEventListener("DOMContentLoaded", () => {
       dailyRate: rateInput.value,
       entryDate: form.entryDate.value,
       items,
+      address: form.address.value.trim(),
+      ...(capturedLoc ? { lat: capturedLoc.lat, lng: capturedLoc.lng } : {}),
     });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
     form.reset();
+    capturedLoc = null;
+    document.getElementById("locStatus").textContent = "";
     form.entryDate.value = today;
     rateInput.readOnly = false;
     document.getElementById("itemsBody").innerHTML = "";

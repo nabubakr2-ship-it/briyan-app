@@ -36,6 +36,12 @@
           <label for="startDate">بەرواری دەستپێکردن</label>
           <input type="date" id="startDate" name="startDate" required>
         </div>
+        <div class="form-field">
+          <label>لۆکەیشن</label>
+          <button type="button" id="locBtn" class="btn-secondary">گرتنی لۆکەیشن</button>
+          <span id="locStatus" class="loc-status"></span>
+          <input type="text" id="address" name="address" placeholder="ناونیشانی شوێن" style="margin-top:8px">
+        </div>
         <div class="form-field" id="agreementField" hidden>
           <label for="agreementType">جۆری ڕێک کەوتن</label>
           <select id="agreementType" name="agreementType">

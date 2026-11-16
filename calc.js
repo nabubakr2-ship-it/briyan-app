@@ -42,6 +42,16 @@ function itemsSum(r) {
   return (r.items || []).reduce((x, it) => x + num(it.amount), 0);
 }
 
+function locLinkHtml(r) {
+  if (r.lat != null && r.lng != null) {
+    return ` <a class="loc-link" href="https://www.google.com/maps?q=${r.lat},${r.lng}" target="_blank" rel="noopener">🗺</a>`;
+  }
+  if (r.address) {
+    return ` <a class="loc-link" href="https://www.google.com/maps?q=${encodeURIComponent(r.address)}" target="_blank" rel="noopener">🗺</a>`;
+  }
+  return "";
+}
+
 function formatDate(iso) {
   if (!iso) return "";
   const d = new Date(iso + "T00:00:00");
@@ -128,6 +138,15 @@ function renderOwnerInfo(mobile, payType = "") {
       کرێکار: <span>${formatNum(workerTotal)}</span>
     </span>
   </div>`;
+  const locRec = [...viewings, ...promises, ...started, ...completed].find(
+    (r) => r.lat != null || r.address
+  );
+  if (locRec) {
+    const hasCoords = locRec.lat != null && locRec.lng != null;
+    const q = hasCoords ? `${locRec.lat},${locRec.lng}` : encodeURIComponent(locRec.address);
+    html += `<div class="info-row"><span>شوێن</span><span><a class="loc-link" href="https://www.google.com/maps?q=${q}" target="_blank" rel="noopener">🗺 گۆگڵ ماپ</a>${locRec.address ? " — " + escapeHtml(locRec.address) : ""}</span></div>`;
+  }
+
   const row = (k, v) =>
     v ? `<div class="info-row"><span>${k}</span><span>${escapeHtml(String(v))}</span></div>` : "";
 
@@ -381,7 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
             remainingTotal += leftAmt;
             const paidCnt = paidList.length;
             html += `<tr>
-              <td>${escapeHtml(r.ownerName || "—")}</td>
+              <td>${escapeHtml(r.ownerName || "—")}${locLinkHtml(r)}</td>
               <td>${formatNum(amt)} د.ع</td>
               <td>${instAmt ? formatNum(instAmt) : "—"}</td>
               <td>${instCnt || "—"}</td>
@@ -446,7 +465,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const leftAmt = Math.max(0, amt - paidAmt);
             remainingTotal += leftAmt;
             html += `<tr>
-              <td>${escapeHtml(r.ownerName || "—")}</td>
+              <td>${escapeHtml(r.ownerName || "—")}${locLinkHtml(r)}</td>
               <td>${formatNum(amt)} د.ع</td>
               <td>${paidAmt ? `${formatNum(paidAmt)} د.ع` : "—"}</td>
               <td>${formatNum(leftAmt)} د.ع</td>
@@ -509,7 +528,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const leftAmt = Math.max(0, amt - paidAmt);
             remainingTotal += leftAmt;
             html += `<tr>
-              <td>${escapeHtml(r.ownerName || "—")}</td>
+              <td>${escapeHtml(r.ownerName || "—")}${locLinkHtml(r)}</td>
               <td>${formatNum(amt)} د.ع</td>
               <td>${paidAmt ? `${formatNum(paidAmt)} د.ع` : "—"}</td>
               <td>${formatNum(leftAmt)} د.ع</td>
@@ -567,7 +586,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const amt = iqdAmt(r);
           total += amt;
           html += `<tr>
-            <td>${escapeHtml(r.ownerName || "—")}</td>
+            <td>${escapeHtml(r.ownerName || "—")}${locLinkHtml(r)}</td>
             <td>${formatDate(r.completeDate)}</td>
             <td>${escapeHtml(r.jobType || "—")}</td>
             <td>${formatNum(amt)} د.ع</td>

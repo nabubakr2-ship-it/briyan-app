@@ -75,6 +75,17 @@ function stripRecord(r) {
 }
 
 let editingId = null;
+let capturedLoc = null;
+
+function locLinkHtml(r) {
+  if (r.lat != null && r.lng != null) {
+    return `<a class="loc-link" href="https://www.google.com/maps?q=${r.lat},${r.lng}" target="_blank" rel="noopener">🗺 گۆگڵ ماپ</a>`;
+  }
+  if (r.address) {
+    return `<a class="loc-link" href="https://www.google.com/maps?q=${encodeURIComponent(r.address)}" target="_blank" rel="noopener">🗺 گۆگڵ ماپ</a>`;
+  }
+  return "";
+}
 
 function updatePriceFields() {
   const form = document.getElementById("workForm");
@@ -255,10 +266,11 @@ function renderRecords() {
     li.innerHTML = `
       <div class="record-main">
         <strong>${escapeHtml(r.ownerName)}</strong>
-        <span class="record-meta">${formatDate(r.startDate)}${totalText ? " — " + escapeHtml(totalText) : ""}${escapeHtml(agreementInfo(r))}</span>
+        <span class="record-meta">${formatDate(r.startDate)}${totalText ? " — " + escapeHtml(totalText) : ""}${escapeHtml(agreementInfo(r))}${r.address ? " — " + escapeHtml(r.address) : ""}</span>
       </div>
       <div class="record-side">
         <span class="record-mobile">${escapeHtml(r.mobile)}</span>
+        ${locLinkHtml(r)}
         <button class="record-del" title="ڕەشکردنەوە">&times;</button>
       </div>
       <div class="record-actions">
@@ -271,7 +283,7 @@ function renderRecords() {
     li.querySelector(".btn-send-done").addEventListener("click", () => {
       localStorage.setItem(
         "pendingStarted",
-        JSON.stringify({ id: r.id, ownerName: r.ownerName, mobile: r.mobile, jobType: r.jobType, ...collectAgreementStatic(r) })
+        JSON.stringify({ id: r.id, ownerName: r.ownerName, mobile: r.mobile, jobType: r.jobType, ...collectAgreementStatic(r), address: r.address || "", ...(r.lat != null && r.lng != null ? { lat: r.lat, lng: r.lng } : {}) })
       );
       window.location.href = "completed.html";
     });
@@ -280,6 +292,9 @@ function renderRecords() {
       form.ownerName.value = r.ownerName;
       form.mobile.value = r.mobile;
       form.startDate.value = r.startDate;
+      form.address.value = r.address || "";
+      capturedLoc = r.lat != null && r.lng != null ? { lat: r.lat, lng: r.lng } : null;
+      document.getElementById("locStatus").textContent = capturedLoc ? "لۆکەیشن وەرگیرا ✓" : "";
       form.jobType.value = r.jobType || "";
       const body = document.getElementById("itemsBody");
       body.innerHTML = "";
@@ -327,6 +342,9 @@ document.addEventListener("DOMContentLoaded", () => {
       form.mobile.value = pending.mobile || "";
       form.jobType.value = pending.jobType || "";
       applyAgreement(form, pending);
+      form.address.value = pending.address || "";
+      capturedLoc = pending.lat != null && pending.lng != null ? { lat: pending.lat, lng: pending.lng } : null;
+      document.getElementById("locStatus").textContent = capturedLoc ? "لۆکەیشن وەرگیرا ✓" : "";
     }
   } catch {}
 
@@ -360,6 +378,8 @@ document.addEventListener("DOMContentLoaded", () => {
       jobType: form.jobType.value,
       items,
       ...collectAgreement(form),
+      address: form.address.value.trim(),
+      ...(capturedLoc ? { lat: capturedLoc.lat, lng: capturedLoc.lng } : {}),
     };
     if (editingId !== null) {
       const target = records.find((x) => x.id === editingId);
@@ -381,11 +401,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setEditMode(null);
     form.reset();
+    capturedLoc = null;
+    document.getElementById("locStatus").textContent = "";
     document.getElementById("itemsBody").innerHTML = "";
     addItemRow();
     updateTotal();
     renderRecords();
     alert("تۆمارکرا");
+  });
+
+  const locBtn = document.getElementById("locBtn");
+  const locStatus = document.getElementById("locStatus");
+  locBtn.addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      alert("ئەم وێبگەڕە لۆکەیشن پشتگیری ناکات");
+      return;
+    }
+    locBtn.disabled = true;
+    locStatus.textContent = "چاوەڕوان بە…";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        capturedLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        locStatus.textContent = "لۆکەیشن وەرگیرا ✓";
+        locBtn.disabled = false;
+      },
+      () => {
+        locStatus.textContent = "نەتوانرا لۆکەیشن بهێندرێت";
+        locBtn.disabled = false;
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
+    );
   });
 
   form.addEventListener("reset", () => setEditMode(null));

@@ -287,6 +287,17 @@ function openInfo(r) {
 }
 
 let editingId = null;
+let capturedLoc = null;
+
+function locLinkHtml(r) {
+  if (r.lat != null && r.lng != null) {
+    return `<a class="loc-link" href="https://www.google.com/maps?q=${r.lat},${r.lng}" target="_blank" rel="noopener">🗺 گۆگڵ ماپ</a>`;
+  }
+  if (r.address) {
+    return `<a class="loc-link" href="https://www.google.com/maps?q=${encodeURIComponent(r.address)}" target="_blank" rel="noopener">🗺 گۆگڵ ماپ</a>`;
+  }
+  return "";
+}
 
 function setEditMode(id) {
   editingId = id;
@@ -312,10 +323,11 @@ function renderRecords() {
     li.innerHTML = `
       <div class="record-main">
         <strong>${escapeHtml(r.ownerName)}</strong>
-        <span class="record-meta">${escapeHtml(r.jobType)} — ${formatDate(r.completeDate)}${escapeHtml(agreementInfo(r))}</span>
+        <span class="record-meta">${escapeHtml(r.jobType)} — ${formatDate(r.completeDate)}${escapeHtml(agreementInfo(r))}${r.address ? " — " + escapeHtml(r.address) : ""}</span>
       </div>
       <div class="record-side">
         <span class="record-mobile">${escapeHtml(r.mobile)}</span>
+        ${locLinkHtml(r)}
         <button class="record-del" title="ڕەشکردنەوە">&times;</button>
       </div>
       <select class="pay-select" title="جۆری پارەدان">
@@ -350,6 +362,9 @@ function renderRecords() {
       formEl.ownerName.value = r.ownerName;
       formEl.mobile.value = r.mobile;
       formEl.completeDate.value = r.completeDate;
+      formEl.address.value = r.address || "";
+      capturedLoc = r.lat != null && r.lng != null ? { lat: r.lat, lng: r.lng } : null;
+      document.getElementById("locStatus").textContent = capturedLoc ? "لۆکەیشن وەرگیرا ✓" : "";
       jobTypeEl.value = r.jobType || "";
       document.getElementById("dollarRate").value = r.dollarRate || "";
       applyAgreement(formEl, r);
@@ -404,6 +419,9 @@ document.addEventListener("DOMContentLoaded", () => {
       pendingStartedId = pending.id;
       form.ownerName.value = pending.ownerName || "";
       form.mobile.value = pending.mobile || "";
+      form.address.value = pending.address || "";
+      capturedLoc = pending.lat != null && pending.lng != null ? { lat: pending.lat, lng: pending.lng } : null;
+      document.getElementById("locStatus").textContent = capturedLoc ? "لۆکەیشن وەرگیرا ✓" : "";
       jobType.value = pending.jobType || "";
       applyAgreement(form, {
         agreementType: pending.agreementType || pending.waxType || "",
@@ -452,6 +470,8 @@ document.addEventListener("DOMContentLoaded", () => {
       dollarRate: document.getElementById("dollarRate").value,
       totalIqd: document.getElementById("totalIqd").value,
       ...collectAgreement(form),
+      address: form.address.value.trim(),
+      ...(capturedLoc ? { lat: capturedLoc.lat, lng: capturedLoc.lng } : {}),
     };
     if (editingId !== null) {
       const target = records.find((x) => x.id === editingId);
@@ -473,9 +493,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setEditMode(null);
     form.reset();
+    capturedLoc = null;
+    document.getElementById("locStatus").textContent = "";
     updatePriceFields();
     renderRecords();
     alert("تۆمارکرا");
+  });
+
+  const locBtn = document.getElementById("locBtn");
+  const locStatus = document.getElementById("locStatus");
+  locBtn.addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      alert("ئەم وێبگەڕە لۆکەیشن پشتگیری ناکات");
+      return;
+    }
+    locBtn.disabled = true;
+    locStatus.textContent = "چاوەڕوان بە…";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        capturedLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        locStatus.textContent = "لۆکەیشن وەرگیرا ✓";
+        locBtn.disabled = false;
+      },
+      () => {
+        locStatus.textContent = "نەتوانرا لۆکەیشن بهێندرێت";
+        locBtn.disabled = false;
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
+    );
   });
 
   form.addEventListener("reset", () => setEditMode(null));

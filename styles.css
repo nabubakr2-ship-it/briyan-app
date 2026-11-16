@@ -1051,3 +1051,20 @@ body {
     font-size: 0.75rem;
   }
 }
+
+.loc-status {
+  margin-inline-start: 10px;
+  font-size: 0.85rem;
+  color: #156038;
+}
+
+.loc-link {
+  font-size: 0.78rem;
+  color: #1a3a5c;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.loc-link:hover {
+  text-decoration: underline;
+}

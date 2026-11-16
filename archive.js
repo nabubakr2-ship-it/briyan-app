@@ -43,6 +43,16 @@ function agreementInfo(r) {
   return ` — ${r.agreementType}${r.total ? ` (کۆی پارە: ${r.total})` : r.price ? ` (${r.price})` : ""}`;
 }
 
+function locLinkHtml(r) {
+  if (r.lat != null && r.lng != null) {
+    return `<a class="loc-link" href="https://www.google.com/maps?q=${r.lat},${r.lng}" target="_blank" rel="noopener">🗺 گۆگڵ ماپ</a>`;
+  }
+  if (r.address) {
+    return `<a class="loc-link" href="https://www.google.com/maps?q=${encodeURIComponent(r.address)}" target="_blank" rel="noopener">🗺 گۆگڵ ماپ</a>`;
+  }
+  return "";
+}
+
 function infoRow(k, v) {
   return v ? `<div class="info-row"><span>${k}</span><span>${escapeHtml(String(v))}</span></div>` : "";
 }
@@ -58,6 +68,11 @@ function openInfo(r) {
   html += infoRow("ژمارە مۆبایل", r.mobile);
   html += infoRow("جۆری ئیش", r.jobType);
   html += infoRow("جۆری پارەدان", r.paymentType);
+  if (r.lat != null || r.address) {
+    const hasCoords = r.lat != null && r.lng != null;
+    const q = hasCoords ? `${r.lat},${r.lng}` : encodeURIComponent(r.address);
+    html += `<div class="info-row"><span>شوێن</span><span><a class="loc-link" href="https://www.google.com/maps?q=${q}" target="_blank" rel="noopener">🗺 گۆگڵ ماپ</a>${r.address ? " — " + escapeHtml(r.address) : ""}</span></div>`;
+  }
   html += `<h3 class="info-section">بەروارەکان</h3>`;
   html += infoRow("بەرواری تەماشاکردن", v.viewDate ? formatDate(v.viewDate) : "");
   html += infoRow("بەرواری بەڵێن", p.promiseDate ? formatDate(p.promiseDate) : "");
@@ -109,10 +124,11 @@ function render() {
     li.innerHTML = `
       <div class="record-main">
         <strong>${escapeHtml(r.ownerName)}</strong>
-        <span class="record-meta">${escapeHtml(r.jobType)} — ${formatDate(r.completeDate)}${escapeHtml(agreementInfo(r))}</span>
+        <span class="record-meta">${escapeHtml(r.jobType)} — ${formatDate(r.completeDate)}${escapeHtml(agreementInfo(r))}${r.address ? " — " + escapeHtml(r.address) : ""}</span>
       </div>
       <div class="record-side">
         <span class="record-mobile">${formatNum(r.grandTotal || r.total)}</span>
+        ${locLinkHtml(r)}
         <button class="record-del" title="ڕەشکردنەوە">&times;</button>
       </div>
       <div class="record-actions">

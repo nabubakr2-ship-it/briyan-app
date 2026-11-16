@@ -23,6 +23,7 @@ function formatDate(iso) {
 }
 
 let editingId = null;
+let capturedLoc = null;
 
 function setEditMode(id) {
   editingId = id;
@@ -106,11 +107,18 @@ function renderRecords() {
       <div class="record-main">
         <strong>${escapeHtml(r.ownerName)}</strong>
         <span class="record-meta">${escapeHtml(r.jobType)} — ${formatDate(r.viewDate)}${escapeHtml(priceInfo(r))}${
+          r.address ? " — " + escapeHtml(r.address) : ""
+        }${
           r.sentToContractor ? ' <span class="sent-badge">نێردرا بۆ بەڵێندان</span>' : ""
         }</span>
       </div>
       <div class="record-side">
         <span class="record-mobile">${escapeHtml(r.mobile)}</span>
+        ${r.lat != null && r.lng != null
+          ? `<a class="loc-link" href="https://www.google.com/maps?q=${r.lat},${r.lng}" target="_blank" rel="noopener">🗺 گۆگڵ ماپ</a>`
+          : r.address
+            ? `<a class="loc-link" href="https://www.google.com/maps?q=${encodeURIComponent(r.address)}" target="_blank" rel="noopener">🗺 گۆگڵ ماپ</a>`
+            : ""}
         <button class="record-del" title="ڕەشکردنەوە">&times;</button>
       </div>
       <div class="record-actions">
@@ -135,6 +143,7 @@ function renderRecords() {
       form.price.value = r.jobType === "شکان" ? "" : r.price || "";
       form.priceWool.value = r.priceWool || "";
       form.priceMarble.value = r.priceMarble || "";
+      form.address.value = r.address || "";
       setEditMode(r.id);
       form.scrollIntoView({ behavior: "smooth", block: "start" });
       form.ownerName.focus();
@@ -200,7 +209,12 @@ document.addEventListener("DOMContentLoaded", () => {
           : "",
       priceWool: form.agreementType.value === "مەتر تووڵ و مرەبەح" ? form.priceWool.value : "",
       priceMarble: form.agreementType.value === "مەتر تووڵ و مرەبەح" ? form.priceMarble.value : "",
+      address: form.address.value.trim(),
     };
+    if (capturedLoc) {
+      data.lat = capturedLoc.lat;
+      data.lng = capturedLoc.lng;
+    }
     const records = loadRecords();
     if (editingId !== null) {
       const target = records.find((x) => x.id === editingId);
@@ -211,7 +225,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     saveRecords(records);
     form.reset();
+    capturedLoc = null;
+    document.getElementById("locStatus").textContent = "";
     renderRecords();
+  });
+
+  const locBtn = document.getElementById("locBtn");
+  const locStatus = document.getElementById("locStatus");
+  locBtn.addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      alert("ئەم وێبگەڕە لۆکەیشن پشتگیری ناکات");
+      return;
+    }
+    locBtn.disabled = true;
+    locStatus.textContent = "چاوەڕوان بە…";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        capturedLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        locStatus.textContent = "لۆکەیشن وەرگیرا ✓";
+        locBtn.disabled = false;
+      },
+      () => {
+        locStatus.textContent = "نەتوانرا لۆکەیشن بهێندرێت";
+        locBtn.disabled = false;
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
+    );
   });
 
   form.jobType.addEventListener("change", updatePriceFields);

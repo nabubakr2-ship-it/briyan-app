@@ -40,6 +40,17 @@ function stripRecord(r) {
 }
 
 let pendingViewingId = null;
+let capturedLoc = null;
+
+function locLinkHtml(r) {
+  if (r.lat != null && r.lng != null) {
+    return `<a class="loc-link" href="https://www.google.com/maps?q=${r.lat},${r.lng}" target="_blank" rel="noopener">🗺 گۆگڵ ماپ</a>`;
+  }
+  if (r.address) {
+    return `<a class="loc-link" href="https://www.google.com/maps?q=${encodeURIComponent(r.address)}" target="_blank" rel="noopener">🗺 گۆگڵ ماپ</a>`;
+  }
+  return "";
+}
 
 function updatePriceFields() {
   const form = document.getElementById("promiseForm");
@@ -150,6 +161,7 @@ function renderSentList() {
       </div>
       <div class="record-side">
         <span class="record-mobile">${escapeHtml(v.mobile)}</span>
+        ${locLinkHtml(v)}
         <button class="record-del" title="ڕەشکردنەوە">&times;</button>
       </div>
       <div class="sent-actions">
@@ -164,6 +176,9 @@ function renderSentList() {
       form.mobile.value = v.mobile;
       form.promiseDate.value = "";
       applyAgreement(form, v);
+      form.address.value = v.address || "";
+      capturedLoc = v.lat != null && v.lng != null ? { lat: v.lat, lng: v.lng } : null;
+      document.getElementById("locStatus").textContent = capturedLoc ? "لۆکەیشن وەرگیرا ✓" : "";
       pendingViewingId = v.id;
       form.scrollIntoView({ behavior: "smooth", block: "start" });
       form.promiseDate.focus();
@@ -207,6 +222,7 @@ function renderPromiseList() {
       </div>
       <div class="record-side">
         <span class="record-mobile">${escapeHtml(p.mobile)}</span>
+        ${locLinkHtml(p)}
         <button class="record-del" title="ڕەشکردنەوە">&times;</button>
       </div>
       <div class="record-actions">
@@ -256,6 +272,8 @@ document.addEventListener("DOMContentLoaded", () => {
       viewingId: pendingViewingId,
       history,
       ...collectAgreement(form),
+      address: form.address.value.trim(),
+      ...(capturedLoc ? { lat: capturedLoc.lat, lng: capturedLoc.lng } : {}),
     });
     saveJSON(PROMISES_KEY, promises);
     saveLastAgreement(collectAgreement(form));
@@ -267,9 +285,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     form.reset();
+    capturedLoc = null;
+    document.getElementById("locStatus").textContent = "";
     renderSentList();
     renderPromiseList();
     alert("بەڵێن تۆمارکرا");
+  });
+
+  const locBtn = document.getElementById("locBtn");
+  const locStatus = document.getElementById("locStatus");
+  locBtn.addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      alert("ئەم وێبگەڕە لۆکەیشن پشتگیری ناکات");
+      return;
+    }
+    locBtn.disabled = true;
+    locStatus.textContent = "چاوەڕوان بە…";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        capturedLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        locStatus.textContent = "لۆکەیشن وەرگیرا ✓";
+        locBtn.disabled = false;
+      },
+      () => {
+        locStatus.textContent = "نەتوانرا لۆکەیشن بهێندرێت";
+        locBtn.disabled = false;
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
+    );
   });
 
   renderSentList();
