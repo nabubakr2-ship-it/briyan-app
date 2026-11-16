@@ -91,9 +91,9 @@ function renderAccounts() {
     accounts = [{
       id: "worker",
       password: "1234",
-      name: "کرێکار",
+      name: "وەستا",
       mobile: "",
-      role: "کرێکار",
+      role: "وەستا",
     }];
     saveAccounts(accounts);
     alert("هەژماری بنەڕەتی دروستکرا — ئایدی: worker — پاسۆرد: 1234");
