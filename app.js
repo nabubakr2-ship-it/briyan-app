@@ -7,13 +7,16 @@ document.addEventListener("DOMContentLoaded", () => {
       "startedWorks",
       "completedWorks",
       "workerEntries",
-      "workerAccounts",
       "myExpenses",
     ];
+    const keepWorkerAccounts = localStorage.getItem("workerAccounts");
     (async () => {
       localStorage.clear();
       sessionStorage.clear();
       SYNC_KEYS.forEach((k) => localStorage.setItem(k, "[]"));
+      if (keepWorkerAccounts !== null) {
+        localStorage.setItem("workerAccounts", keepWorkerAccounts);
+      }
       try {
         if (window.ensureRemote) {
           await ensureRemote();
