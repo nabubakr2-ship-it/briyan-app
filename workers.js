@@ -86,7 +86,18 @@ function saveAccounts(list) {
 
 function renderAccounts() {
   const list = document.getElementById("accountsList");
-  const accounts = loadAccounts();
+  let accounts = loadAccounts();
+  if (!accounts.length) {
+    accounts = [{
+      id: "worker",
+      password: "1234",
+      name: "کرێکار",
+      mobile: "",
+      role: "کرێکار",
+    }];
+    saveAccounts(accounts);
+    alert("هەژماری بنەڕەتی دروستکرا — ئایدی: worker — پاسۆرد: 1234");
+  }
   list.innerHTML = "";
   accounts.forEach((a) => {
     const li = document.createElement("li");
