@@ -222,6 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const secDay = document.getElementById("secDay");
   const secExp = document.getElementById("secExp");
   const secAddr = document.getElementById("secAddr");
+  const formActions = form.querySelector(".form-actions");
   function showSection(which) {
     secDay.hidden = which !== "day";
     secExp.hidden = which !== "exp";
@@ -229,6 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
     tabDay.classList.toggle("active", which === "day");
     tabExp.classList.toggle("active", which === "exp");
     tabAddr.classList.toggle("active", which === "addr");
+    if (formActions) formActions.hidden = which === "addr";
   }
   tabDay.addEventListener("click", () => showSection("day"));
   tabExp.addEventListener("click", () => showSection("exp"));
