@@ -1068,3 +1068,65 @@ body {
 .loc-link:hover {
   text-decoration: underline;
 }
+
+.section-btns {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.section-btn {
+  flex: 1;
+  padding: 16px;
+  border: none;
+  border-radius: 14px;
+  background: #e8eef5;
+  color: #1a3a5c;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.section-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(0,0,0,0.18);
+}
+
+.section-btn.active {
+  background: linear-gradient(135deg, #1a3a5c, #2f5f96);
+  color: #fff;
+}
+
+#infoModal .modal-card {
+  max-width: 96vw;
+  overflow: auto;
+}
+
+#infoModal .summary-table {
+  font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  #infoModal .modal-card {
+    max-width: 96vw;
+    padding: 14px;
+  }
+
+  #infoModal .summary-table {
+    font-size: 0.72rem;
+  }
+
+  #infoModal .summary-table th,
+  #infoModal .summary-table td {
+    padding: 5px 4px;
+    font-size: 0.72rem;
+    white-space: normal;
+  }
+
+  #infoModal .info-row span {
+    font-size: 0.85rem;
+  }
+}

@@ -122,7 +122,7 @@ function renderRecords(workerId) {
     li.innerHTML = `
       <div class="record-main">
         <strong>${escapeHtml(r.ownerName || "—")}</strong>
-        <span class="record-meta">${escapeHtml(r.dailyStatus)} — ${escapeHtml(r.jobType)}${r.address ? " — " + escapeHtml(r.address) : ""}</span>
+        <span class="record-meta">${escapeHtml(r.dailyStatus)}${r.jobType ? " — " + escapeHtml(r.jobType) : ""}${r.address ? " — " + escapeHtml(r.address) : ""}</span>
       </div>
       <div class="record-side">
         <span class="record-mobile">${escapeHtml(formatDate(r.entryDate))}</span>
@@ -153,6 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("workerTitle").textContent = `تۆماری ڕۆژانە — ${worker.name}`;
   document.getElementById("workerNameDisplay").value = worker.name;
+  document.getElementById("workerNameDisplayExp").value = worker.name;
 
   const modal = document.getElementById("summaryModal");
   document.getElementById("summaryBtn").addEventListener("click", () => {
@@ -213,17 +214,55 @@ document.addEventListener("DOMContentLoaded", () => {
   const rateInput = form.dailyRate;
   const statusSelect = form.dailyStatus;
   const ownerSelect = form.ownerSelect;
+  const expOwnerSelect = form.expOwnerSelect;
 
-  collectOwners().forEach((o) => {
-    const opt = document.createElement("option");
-    opt.value = o.mobile;
-    opt.textContent = `${o.ownerName} — ${o.mobile}`;
-    opt.dataset.ownerName = o.ownerName;
-    ownerSelect.appendChild(opt);
+  const tabDay = document.getElementById("tabDay");
+  const tabExp = document.getElementById("tabExp");
+  const tabAddr = document.getElementById("tabAddr");
+  const secDay = document.getElementById("secDay");
+  const secExp = document.getElementById("secExp");
+  const secAddr = document.getElementById("secAddr");
+  function showSection(which) {
+    secDay.hidden = which !== "day";
+    secExp.hidden = which !== "exp";
+    secAddr.hidden = which !== "addr";
+    tabDay.classList.toggle("active", which === "day");
+    tabExp.classList.toggle("active", which === "exp");
+    tabAddr.classList.toggle("active", which === "addr");
+  }
+  tabDay.addEventListener("click", () => showSection("day"));
+  tabExp.addEventListener("click", () => showSection("exp"));
+  tabAddr.addEventListener("click", () => showSection("addr"));
+
+  const owners = collectOwners();
+  [ownerSelect, expOwnerSelect, form.addrOwnerSelect].forEach((sel) => {
+    owners.forEach((o) => {
+      const opt = document.createElement("option");
+      opt.value = o.mobile;
+      opt.textContent = `${o.ownerName} — ${o.mobile}`;
+      opt.dataset.ownerName = o.ownerName;
+      sel.appendChild(opt);
+    });
+  });
+
+  const addrOwnerSelect = form.addrOwnerSelect;
+  addrOwnerSelect.addEventListener("change", () => {
+    const mobile = addrOwnerSelect.value;
+    const name = addrOwnerSelect.selectedOptions[0]?.dataset.ownerName || "";
+    const works = loadJSON("startedWorks").filter(
+      (r) => !r.archived && (r.mobile === mobile || (name && r.ownerName === name))
+    );
+    const rec = works[works.length - 1];
+    form.address.value = rec && rec.address ? rec.address : "";
+    capturedLoc = rec && rec.lat != null && rec.lng != null ? { lat: rec.lat, lng: rec.lng } : null;
+    document.getElementById("locStatus").textContent = capturedLoc
+      ? "لۆکەیشنی خاوەن ماڵ ئامادەیە ✓"
+      : "";
   });
 
   const today = new Date().toISOString().slice(0, 10);
   form.entryDate.value = today;
+  form.expDate.value = today;
 
   addItemRow();
   document.getElementById("itemsBody").addEventListener("input", updateTotal);
@@ -231,6 +270,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const locBtn = document.getElementById("locBtn");
   const locStatus = document.getElementById("locStatus");
   locBtn.addEventListener("click", () => {
+    if (capturedLoc) {
+      locStatus.textContent = "لۆکەیشنی خاوەن ماڵ ئامادەیە ✓";
+      return;
+    }
     if (!navigator.geolocation) {
       alert("ئەم وێبگەڕە لۆکەیشن پشتگیری ناکات");
       return;
@@ -264,18 +307,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    if (!rateInput.value) {
-      alert("بڕی ڕۆژانە بنووسە");
-      return;
-    }
 
-    const ownerOpt = ownerSelect.selectedOptions[0];
     const items = [...document.querySelectorAll(".item-row")]
       .map((row) => ({
         type: row.querySelector(".item-type").value.trim(),
         amount: row.querySelector(".item-amount").value.trim(),
       }))
       .filter((it) => it.type !== "" || it.amount !== "");
+
+    const pickOwner = (sel) => {
+      const o = sel.selectedOptions[0];
+      return o && o.value ? o : null;
+    };
+    const ownerOpt = pickOwner(ownerSelect) || pickOwner(expOwnerSelect) || pickOwner(addrOwnerSelect);
+    const ownerMobile = ownerSelect.value || expOwnerSelect.value || addrOwnerSelect.value || "";
+
+    if (!ownerMobile) {
+      alert("ناوی خاوەن ماڵ هەڵبژێرە");
+      return;
+    }
+    if (!rateInput.value && !items.length) {
+      alert("بڕی ڕۆژانە یان بڕی مەسرەف بنووسە");
+      return;
+    }
 
     const records = loadJSON(STORAGE_KEY);
     records.push({
@@ -284,11 +338,11 @@ document.addEventListener("DOMContentLoaded", () => {
       workerName: worker.name,
       workerMobile: worker.mobile,
       ownerName: ownerOpt ? ownerOpt.dataset.ownerName : "",
-      ownerMobile: ownerSelect.value || "",
-      jobType: form.jobType.value,
+      ownerMobile,
       dailyStatus: statusSelect.value,
-      dailyRate: rateInput.value,
-      entryDate: form.entryDate.value,
+      dailyRate: rateInput.value || "0",
+      entryDate: form.entryDate.value || form.expDate.value,
+      expDate: form.expDate.value,
       items,
       address: form.address.value.trim(),
       ...(capturedLoc ? { lat: capturedLoc.lat, lng: capturedLoc.lng } : {}),
@@ -298,6 +352,7 @@ document.addEventListener("DOMContentLoaded", () => {
     capturedLoc = null;
     document.getElementById("locStatus").textContent = "";
     form.entryDate.value = today;
+    form.expDate.value = today;
     rateInput.readOnly = false;
     document.getElementById("itemsBody").innerHTML = "";
     addItemRow();

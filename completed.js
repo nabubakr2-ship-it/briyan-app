@@ -328,7 +328,6 @@ function renderRecords() {
       <div class="record-side">
         <span class="record-mobile">${escapeHtml(r.mobile)}</span>
         ${locLinkHtml(r)}
-        <button class="record-del" title="ڕەشکردنەوە">&times;</button>
       </div>
       <select class="pay-select" title="جۆری پارەدان">
         <option value="">-- جۆر --</option>
@@ -371,14 +370,6 @@ function renderRecords() {
       setEditMode(r.id);
       formEl.scrollIntoView({ behavior: "smooth", block: "start" });
       formEl.ownerName.focus();
-    });
-    li.querySelector(".record-del").addEventListener("click", () => {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(loadRecords().filter((x) => x.id !== r.id))
-      );
-      if (editingId === r.id) setEditMode(null);
-      renderRecords();
     });
     list.appendChild(li);
   });

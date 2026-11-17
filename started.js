@@ -271,7 +271,6 @@ function renderRecords() {
       <div class="record-side">
         <span class="record-mobile">${escapeHtml(r.mobile)}</span>
         ${locLinkHtml(r)}
-        <button class="record-del" title="ڕەشکردنەوە">&times;</button>
       </div>
       <div class="record-actions">
         <button class="btn-info" data-id="${r.id}">لیستی زانیاری</button>
@@ -307,14 +306,6 @@ function renderRecords() {
       updateTotal();
       form.scrollIntoView({ behavior: "smooth", block: "start" });
       form.ownerName.focus();
-    });
-    li.querySelector(".record-del").addEventListener("click", () => {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(loadRecords().filter((x) => x.id !== r.id))
-      );
-      if (editingId === r.id) setEditMode(null);
-      renderRecords();
     });
     list.appendChild(li);
   });

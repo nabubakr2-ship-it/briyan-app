@@ -270,19 +270,9 @@ function renderRecords() {
       </div>
       <div class="record-side">
         <span class="record-mobile">${formatDate(r.entryDate)}</span>
-        <button class="record-del" title="ڕەشکردنەوە">&times;</button>
       </div>
     `;
     li.querySelector(".btn-info").addEventListener("click", () => openInfo(r));
-    li.querySelector(".record-del").addEventListener("click", () => {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(loadJSON(STORAGE_KEY).filter((x) => x.id !== r.id))
-      );
-      renderRecords();
-      fillFilterOptions();
-      renderSummaryTable();
-    });
     list.appendChild(li);
   });
 

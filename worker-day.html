@@ -14,59 +14,89 @@
     </header>
 
     <main class="form-body">
+      <div class="section-btns">
+        <button type="button" id="tabDay" class="section-btn active">کاری ڕۆژانە</button>
+        <button type="button" id="tabExp" class="section-btn">مەسروفات</button>
+        <button type="button" id="tabAddr" class="section-btn">ناونیشانی ماڵەکان</button>
+      </div>
+
       <form id="dayForm" class="blank-form">
-        <div class="form-field">
-          <label for="workerNameDisplay">ناوی کرێکار</label>
-          <input type="text" id="workerNameDisplay" readonly>
-        </div>
-        <div class="form-field">
-          <label for="ownerSelect">ناوی خاوەن ماڵ هەڵبژێرە</label>
-          <select id="ownerSelect" name="ownerSelect">
-            <option value="">-- هەڵبژێرە --</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label for="jobType">جۆری ئیش</label>
-          <select id="jobType" name="jobType" required>
-            <option value="">-- هەڵبژێرە --</option>
-            <option value="شکان">شکان</option>
-            <option value="محالەجە">محالەجە</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label for="dailyStatus">دۆخی ڕۆژانە</label>
-          <select id="dailyStatus" name="dailyStatus" required>
-            <option value="">-- هەڵبژێرە --</option>
-            <option value="ڕۆژی تەواو">ڕۆژی تەواو</option>
-            <option value="نیو ڕۆژ">نیو ڕۆژ</option>
-            <option value="دیاریکردنی دەست">دیاریکردنی دەست</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label for="dailyRate">بڕی ڕۆژانە</label>
-          <input type="number" id="dailyRate" name="dailyRate" min="0" step="any">
-        </div>
-        <div class="form-field">
-          <label for="entryDate">بەروار</label>
-          <input type="date" id="entryDate" name="entryDate" required>
-        </div>
-        <div class="form-field">
-          <label>لۆکەیشن</label>
-          <button type="button" id="locBtn" class="btn-secondary">گرتنی لۆکەیشن</button>
-          <span id="locStatus" class="loc-status"></span>
-          <input type="text" id="address" name="address" placeholder="ناونیشانی شوێن" style="margin-top:8px">
-        </div>
-        <div class="form-field">
-          <label>بڕی مەسرەف</label>
-          <div class="items-table">
-            <div class="items-head">
-              <span>جۆری کاڵا</span>
-              <span>بڕی پارە</span>
-            </div>
-            <div id="itemsBody"></div>
+        <div id="secDay">
+          <div class="form-field">
+            <label for="workerNameDisplay">ناوی کرێکار</label>
+            <input type="text" id="workerNameDisplay" readonly>
           </div>
-          <div class="total-expense">کۆی خەرجی: <strong id="totalAmount">0</strong></div>
+          <div class="form-field">
+            <label for="ownerSelect">ناوی خاوەن ماڵ هەڵبژێرە</label>
+            <select id="ownerSelect" name="ownerSelect">
+              <option value="">-- هەڵبژێرە --</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="dailyStatus">دۆخی ڕۆژانە</label>
+            <select id="dailyStatus" name="dailyStatus">
+              <option value="">-- هەڵبژێرە --</option>
+              <option value="ڕۆژی تەواو">ڕۆژی تەواو</option>
+              <option value="نیو ڕۆژ">نیو ڕۆژ</option>
+              <option value="دیاریکردنی دەست">دیاریکردنی دەست</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="dailyRate">بڕی ڕۆژانە</label>
+            <input type="number" id="dailyRate" name="dailyRate" min="0" step="any">
+          </div>
+          <div class="form-field">
+            <label for="entryDate">بەروار</label>
+            <input type="date" id="entryDate" name="entryDate">
+          </div>
         </div>
+
+        <div id="secExp" hidden>
+          <div class="form-field">
+            <label for="workerNameDisplayExp">ناوی کرێکار</label>
+            <input type="text" id="workerNameDisplayExp" readonly>
+          </div>
+          <div class="form-field">
+            <label for="expOwnerSelect">ناوی خاوەن ماڵ هەڵبژێرە</label>
+            <select id="expOwnerSelect" name="expOwnerSelect">
+              <option value="">-- هەڵبژێرە --</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="expDate">بەروار</label>
+            <input type="date" id="expDate" name="expDate">
+          </div>
+          <div class="form-field">
+            <label>بڕی مەسرەف</label>
+            <div class="items-table">
+              <div class="items-head">
+                <span>جۆری کاڵا</span>
+                <span>بڕی پارە</span>
+              </div>
+              <div id="itemsBody"></div>
+            </div>
+            <div class="total-expense">کۆی خەرجی: <strong id="totalAmount">0</strong></div>
+          </div>
+        </div>
+
+        <div id="secAddr" hidden>
+          <div class="form-field">
+            <label for="addrOwnerSelect">ناوی خاوەن ماڵ هەڵبژێرە</label>
+            <select id="addrOwnerSelect" name="addrOwnerSelect">
+              <option value="">-- هەڵبژێرە --</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="address">ناونیشانی ماڵ</label>
+            <input type="text" id="address" name="address" placeholder="ناونیشانی شوێن" readonly>
+          </div>
+          <div class="form-field">
+            <label>لۆکەیشن</label>
+            <button type="button" id="locBtn" class="btn-secondary">گرتنی لۆکەیشن</button>
+            <span id="locStatus" class="loc-status"></span>
+          </div>
+        </div>
+
         <div class="form-actions">
           <button type="submit" class="btn-primary">پاشەکەوت</button>
         </div>
