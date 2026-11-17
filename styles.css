@@ -1132,5 +1132,29 @@ body {
 }
 
 #infoModal .modal-card {
+  width: calc(100% - 14px);
   margin-inline-end: 14px;
+}
+
+.items-head.exp-head,
+.item-row.exp-row {
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+}
+
+.item-row.exp-row > * + * {
+  border-right: 1px solid #e3e6ea;
+}
+
+.item-row select {
+  border: none;
+  border-radius: 0;
+  padding: 10px 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: #fff;
+}
+
+.item-row select:focus {
+  outline: none;
+  background: #f5f8fc;
 }

@@ -35,6 +35,7 @@ function escapeHtml(s) {
 let searchText = "";
 let filterWorker = "";
 let filterOwner = "";
+let summaryMode = "day";
 
 function fillFilterOptions() {
   const records = loadJSON(STORAGE_KEY);
@@ -61,37 +62,59 @@ function fillFilterOptions() {
 }
 
 function renderSummaryTable() {
-  const records = loadJSON(STORAGE_KEY)
+  const all = loadJSON(STORAGE_KEY)
     .filter((r) => !r.archived && (!filterWorker || r.workerName === filterWorker) && (!filterOwner || r.ownerName === filterOwner))
     .slice()
     .reverse();
+  const records = all.filter((r) =>
+    summaryMode === "day"
+      ? (parseFloat(r.dailyRate) || 0) > 0 || r.dailyStatus
+      : (r.items || []).length > 0
+  );
   let html = "";
   let grand = 0;
   if (records.length) {
-    html = `<table class="summary-table">
-      <thead><tr>
-        <th>کرێکار</th><th>خاوەن ماڵ</th><th>بەروار</th><th>دۆخ</th><th>پۆست</th><th>خەرجی</th><th>کۆی پارە</th><th></th>
-      </tr></thead><tbody>`;
-    records.forEach((r) => {
-      const items = r.items || [];
-      const exp = items.reduce((s, it) => s + (parseFloat(it.amount) || 0), 0);
-      const itemNames = items
-        .map((it) => [it.type, it.amount].filter(Boolean).join(": "))
-        .filter(Boolean)
-        .join("، ");
-      const rate = parseFloat(r.dailyRate) || 0;
-      grand += rate + exp;
-      html += `<tr>
-        <td>${escapeHtml(r.workerName || "—")}</td>
-        <td>${escapeHtml(r.ownerName || "—")}</td>
-        <td>${formatDate(r.entryDate)}</td>
-        <td>${escapeHtml(r.dailyStatus || "—")}</td>
-        <td>${escapeHtml(r.postDeliver || "—")}</td>
-        <td>${escapeHtml(itemNames || "—")}</td>
-        <td>${formatNum(rate + exp)}</td>
-        <td><button type="button" class="btn-info" data-id="${r.id}">زانیاریەکان</button></td>
-      </tr>`;
-    });
+    if (summaryMode === "day") {
+      html = `<table class="summary-table">
+        <thead><tr>
+          <th>کرێکار</th><th>خاوەن ماڵ</th><th>بەروار</th><th>دۆخ</th><th>کۆی</th><th>کۆی پارە</th><th></th>
+        </tr></thead><tbody>`;
+      records.forEach((r) => {
+        const rate = parseFloat(r.dailyRate) || 0;
+        grand += rate;
+        html += `<tr>
+          <td>${escapeHtml(r.workerName || "—")}</td>
+          <td>${escapeHtml(r.ownerName || "—")}</td>
+          <td>${formatDate(r.entryDate)}</td>
+          <td>${escapeHtml(r.dailyStatus || "—")}</td>
+          <td>${formatNum(rate)} د.ع</td>
+          <td>${formatNum(rate)} د.ع</td>
+          <td><button type="button" class="btn-info" data-id="${r.id}">زانیاریەکان</button></td>
+        </tr>`;
+      });
+    } else {
+      html = `<table class="summary-table">
+        <thead><tr>
+          <th>کرێکار</th><th>خاوەن ماڵ</th><th>بەروار</th><th>خەرجی</th><th>کۆی خەرجی</th><th></th>
+        </tr></thead><tbody>`;
+      records.forEach((r) => {
+        const items = r.items || [];
+        const exp = items.reduce((sum, it) => sum + (parseFloat(it.amount) || 0), 0);
+        const itemNames = items
+          .map((it) => [it.type, it.amount].filter(Boolean).join(": "))
+          .filter(Boolean)
+          .join("، ");
+        grand += exp;
+        html += `<tr>
+          <td>${escapeHtml(r.workerName || "—")}</td>
+          <td>${escapeHtml(r.ownerName || "—")}</td>
+          <td>${formatDate(r.entryDate)}</td>
+          <td>${escapeHtml(itemNames || "—")}</td>
+          <td>${formatNum(exp)} د.ع</td>
+          <td><button type="button" class="btn-info" data-id="${r.id}">زانیاریەکان</button></td>
+        </tr>`;
+      });
+    }
     html += "</tbody></table>";
   }
   document.getElementById("summaryBody").innerHTML =
@@ -100,7 +123,7 @@ function renderSummaryTable() {
   document.getElementById("summaryBody").querySelectorAll(".btn-info").forEach((btn) => {
     btn.addEventListener("click", () => {
       const rec = loadJSON(STORAGE_KEY).find((x) => x.id === Number(btn.dataset.id));
-      if (rec) openInfo(rec);
+      if (rec) openInfo(rec, summaryMode);
     });
   });
 }
@@ -114,7 +137,8 @@ function infoRow(k, v) {
 let infoRecordId = null;
 let infoWorkerName = "";
 
-function openInfo(r) {
+function openInfo(r, mode) {
+  mode = mode || "all";
   infoRecordId = r.id;
   infoWorkerName = r.workerName || "";
   const items = r.items || [];
@@ -126,19 +150,19 @@ function openInfo(r) {
   html += infoRow("ژمارە مۆبایلی کرێکار", r.workerMobile);
   html += infoRow("ناوی خاوەن ماڵ", r.ownerName);
   html += infoRow("ژمارە مۆبایلی خاوەن ماڵ", r.ownerMobile);
-  html += infoRow("جۆری ئیش", r.jobType);
+  if (mode !== "exp") html += infoRow("جۆری ئیش", r.jobType);
   html += infoRow("دۆخی ڕۆژانە", r.dailyStatus);
   html += infoRow("بەروار", formatDate(r.entryDate));
-  html += infoRow("بڕی ڕۆژانە", `${formatNum(rate)} د.ع`);
-  if (items.length) {
+  if (mode !== "exp") html += infoRow("بڕی ڕۆژانە", `${formatNum(rate)} د.ع`);
+  if (mode !== "day" && items.length) {
     html += `<h3 class="info-section">مەسروفات</h3>`;
     items.forEach((it) => {
       html += `<div class="info-row"><span>${escapeHtml(it.type || "—")}</span><span>${escapeHtml(String(it.amount || ""))}</span></div>`;
     });
   }
   html += `<h3 class="info-section">کۆی گشتی</h3>`;
-  html += infoRow("کۆی خەرجی", `${formatNum(exp)} د.ع`);
-  html += infoRow("کۆی پارە", `${formatNum(rate + exp)} د.ع`);
+  if (mode !== "day") html += infoRow("کۆی خەرجی", `${formatNum(exp)} د.ع`);
+  html += infoRow("کۆی پارە", `${formatNum(mode === "day" ? rate : mode === "exp" ? exp : rate + exp)} د.ع`);
 
   const recTotal = rate + exp;
   const recPaid = loadJSON(PAYMENTS_KEY)
@@ -215,6 +239,7 @@ function renderPayments() {
       const total = totals.get(name) || 0;
       const paidAmt = paid.get(name) || 0;
       const left = Math.max(0, total - paidAmt);
+      if (left <= 0) return;
       grandTotal += total;
       grandPaid += paidAmt;
       html += `<tr>
@@ -233,49 +258,15 @@ function renderPayments() {
 
 function renderRecords() {
   renderPayments();
-  const records = loadJSON(STORAGE_KEY).filter(
-    (r) => !r.archived && matchesSearch(r, searchText)
-  );
-  const list = document.getElementById("recordsList");
-  const emptyMsg = document.getElementById("emptyMsg");
-  list.innerHTML = "";
-
-  if (!records.length) {
-    emptyMsg.style.display = "block";
-    return;
-  }
-  emptyMsg.style.display = "none";
-
+  const records = loadJSON(STORAGE_KEY).filter((r) => !r.archived);
   let totalRate = 0;
   let totalExpense = 0;
-  records.slice().reverse().forEach((r) => {
+  records.forEach((r) => {
     const rate = parseFloat(r.dailyRate) || 0;
-    const exp = (r.items || []).reduce((s, it) => s + (parseFloat(it.amount) || 0), 0);
-    const itemsText = (r.items || [])
-      .map((it) => [it.type, it.amount].filter(Boolean).join(": "))
-      .filter(Boolean)
-      .join("، ");
+    const exp = (r.items || []).reduce((sum, it) => sum + (parseFloat(it.amount) || 0), 0);
     totalRate += rate;
     totalExpense += exp;
-    const li = document.createElement("li");
-    li.className = "record-item";
-    li.innerHTML = `
-      <div class="record-main">
-        <strong>${escapeHtml(r.workerName || "—")}</strong>
-        <span class="record-meta">${escapeHtml(r.ownerName || "—")}${r.dailyStatus ? " — " + escapeHtml(r.dailyStatus) : ""}${r.jobType ? " — " + escapeHtml(r.jobType) : ""}${itemsText ? " — " + escapeHtml(itemsText) : ""}</span>
-        <span class="record-meta">ڕۆژانە: ${formatNum(rate)} د.ع — خەرجی: ${formatNum(exp)} د.ع — کۆی: <strong>${formatNum(rate + exp)} د.ع</strong></span>
-        <div class="record-actions">
-          <button type="button" class="btn-info" data-id="${r.id}">کۆی زانیاریەکان</button>
-        </div>
-      </div>
-      <div class="record-side">
-        <span class="record-mobile">${formatDate(r.entryDate)}</span>
-      </div>
-    `;
-    li.querySelector(".btn-info").addEventListener("click", () => openInfo(r));
-    list.appendChild(li);
   });
-
   document.getElementById("totalRate").textContent = formatNum(totalRate);
   document.getElementById("totalExpense").textContent = formatNum(totalExpense);
   document.getElementById("totalGrand").textContent = formatNum(totalRate + totalExpense);
@@ -295,6 +286,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   fillFilterOptions();
   renderSummaryTable();
+  const tabDay = document.getElementById("sumTabDay");
+  const tabExp = document.getElementById("sumTabExp");
+  tabDay.addEventListener("click", () => {
+    summaryMode = "day";
+    tabDay.classList.add("active");
+    tabExp.classList.remove("active");
+    renderSummaryTable();
+  });
+  tabExp.addEventListener("click", () => {
+    summaryMode = "exp";
+    tabExp.classList.add("active");
+    tabDay.classList.remove("active");
+    renderSummaryTable();
+  });
+
   document.getElementById("filterWorker").addEventListener("change", (e) => {
     filterWorker = e.target.value;
     renderSummaryTable();

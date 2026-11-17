@@ -31,16 +31,50 @@ function escapeHtml(s) {
   }[c]));
 }
 
-function addItemRow(type = "", amount = "") {
+function dollarRateVal() {
+  const el = document.getElementById("dollarRate");
+  return el ? parseFloat(el.value) || 0 : 0;
+}
+
+function itemDinar(amount, currency, rate) {
+  const a = parseFloat(amount) || 0;
+  if (currency === "دۆلار") {
+    const r = parseFloat(rate) || dollarRateVal() || parseFloat(localStorage.getItem("lastDollarRate")) || 0;
+    return a * r;
+  }
+  return a;
+}
+
+function storedItemDinar(it) {
+  return itemDinar(it.amount, it.currency || "دینار", it.rate);
+}
+
+function addItemRow(type = "", amount = "", currency = "دینار", rate = "") {
   const body = document.getElementById("itemsBody");
   const row = document.createElement("div");
-  row.className = "item-row";
+  row.className = "item-row exp-row";
   row.innerHTML = `
     <input type="text" class="item-type" placeholder="جۆری کاڵا">
+    <select class="item-currency">
+      <option value="دینار">دینار</option>
+      <option value="دۆلار">دۆلار</option>
+    </select>
     <input type="number" class="item-amount" placeholder="بڕ" min="0" step="any">
+    <input type="number" class="item-rate" placeholder="نرخ" min="0" step="any">
   `;
   row.querySelector(".item-type").value = type;
+  row.querySelector(".item-currency").value = currency;
   row.querySelector(".item-amount").value = amount;
+  row.querySelector(".item-rate").value = rate !== "" ? rate : dollarRateVal();
+  const curSel = row.querySelector(".item-currency");
+  const rateInp = row.querySelector(".item-rate");
+  const syncRateVis = () => {
+    const isUsd = curSel.value === "دۆلار";
+    rateInp.style.visibility = isUsd ? "visible" : "hidden";
+    if (isUsd && !rateInp.value) rateInp.value = dollarRateVal();
+  };
+  syncRateVis();
+  curSel.addEventListener("change", syncRateVis);
 
   row.addEventListener("input", () => {
     const rows = body.querySelectorAll(".item-row");
@@ -55,10 +89,13 @@ function addItemRow(type = "", amount = "") {
 }
 
 function updateTotal() {
-  const total = [...document.querySelectorAll(".item-amount")].reduce(
-    (s, el) => s + (parseFloat(el.value) || 0),
-    0
-  );
+  const total = [...document.querySelectorAll(".item-row")].reduce((sum, row) => {
+    return sum + itemDinar(
+      row.querySelector(".item-amount").value,
+      row.querySelector(".item-currency").value,
+      row.querySelector(".item-rate").value
+    );
+  }, 0);
   document.getElementById("totalAmount").textContent = formatNum(total);
 }
 
@@ -79,10 +116,10 @@ function renderRecords() {
 
   let grandTotal = 0;
   records.slice().reverse().forEach((r) => {
-    const total = (r.items || []).reduce((s, it) => s + (parseFloat(it.amount) || 0), 0);
+    const total = (r.items || []).reduce((sum, it) => sum + storedItemDinar(it), 0);
     grandTotal += total;
     const itemNames = (r.items || [])
-      .map((it) => [it.type, it.amount].filter(Boolean).join(": "))
+      .map((it) => [it.type, it.amount ? it.amount + " " + (it.currency || "دینار") : ""].filter(Boolean).join(": "))
       .filter(Boolean)
       .join("، ");
     const li = document.createElement("li");
@@ -164,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <th>بەروار</th><th>جۆری پارەدان</th><th>کاڵاکان</th><th>کۆی پارە</th>
       </tr></thead><tbody>`;
       records.slice().reverse().forEach((r) => {
-        const exp = (r.items || []).reduce((s, it) => s + (parseFloat(it.amount) || 0), 0);
+        const exp = (r.items || []).reduce((sum, it) => sum + storedItemDinar(it), 0);
         total += exp;
         const itemNames = (r.items || [])
           .map((it) => [it.type, it.amount].filter(Boolean).join(": "))
